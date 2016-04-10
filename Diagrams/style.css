@@ -14,5 +14,5 @@ div#toFrage {
 	border-style:solid;
 	border-width:4px;
 	border-color:#E47E00;
-	cursor: none;
+	cursor: default;
 }

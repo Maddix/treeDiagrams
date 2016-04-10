@@ -6,9 +6,10 @@ function Events(toFrage) {
 
 	localContainer.actionEvent = function(config) {
 		var local = {
-			triggers: [], // Anything that can be passed as input. Input might not be the best name..
+			triggers: [],
 			deleteOnSuccess: [],
-			triggered: false
+			triggered: false, // State of the trigger at start.
+			triggerOn: true // Trigger if the data is there, other trigger when the data is wrong/missing/false.
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(config), local);
 
@@ -16,7 +17,7 @@ function Events(toFrage) {
 			if (!this.triggered) var passToCallback = {};
 			for (var index=0; index < this.triggers.length; index++) {
 				var trigger = this.triggers[index];
-				if (!input[trigger]) {
+				if (this.triggerOn == !input[trigger]) {
 					this.triggered = false;
 					return input;
 				} else if (!this.triggered) {

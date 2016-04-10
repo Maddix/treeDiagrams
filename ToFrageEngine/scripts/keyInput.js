@@ -59,7 +59,7 @@ function Input(toFrage) {
 			if (this.rawInputOrder.indexOf(input) == -1) this.rawInputOrder.push(input);
 		};
 
-		local.removeInput = function(input, value) {
+		local.removeInput = function(input) {
 			delete this.rawInput[input];
 			var index = this.rawInputOrder.indexOf(input);
 			if (index != -1) this.rawInputOrder.splice(index, 1);
@@ -135,7 +135,7 @@ function Input(toFrage) {
 			});
 
 			this.addListenerTo(this.keyElement, "keyup", function(jqueryKeyEvent) {
-				local.removeInput(jqueryKeyEvent.which, false);
+				local.removeInput(jqueryKeyEvent.which);
 				return false;
 			});
 
@@ -170,7 +170,7 @@ function Input(toFrage) {
 			});
 
 			this.addListenerTo(this.mouseElement, "mouseup", function(jqueryKeyEvent) {
-				local.removeInput(jqueryKeyEvent.which, false);
+				local.removeInput(jqueryKeyEvent.which);
 				jqueryKeyEvent.stopPropagation();
 				jqueryKeyEvent.preventDefault();
 			});

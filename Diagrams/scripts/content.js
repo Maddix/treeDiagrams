@@ -13,30 +13,40 @@ function createContent(data) {
 		ratio: data.screenRatio
 	}));
 
+	// Create a Action and state event for dragging the container.
+	// -----------------------------------------------------------
 
-	// Events
-
-	var LMB_clickEvent =  frage.Events.actionEvent({
-		triggers: [16, 1],
-		deleteOnSuccess: [1]
+	var onClick = frage.Events.actionEvent({
+		triggers: [1]
 	});
+	// Add to the inputController
+	inputEventContext.add("click", onClick);
 
-	LMB_clickEvent.add("console", function(results) {
-		console.log("LMB was pressed! Data from the action was '", results, "'");
+	var onRelease = frage.Events.actionEvent({
+		triggers: [1],
+		triggered: true,
+		triggerOn: false
 	});
+	// Add to the inputController
+	inputEventContext.add("clickRelease", onRelease);
 
-	inputEventContext.add("LMB", LMB_clickEvent);
+	var mouseState = frage.Events.stateEvent({
+		triggers: ["mouseMove"]
+	});
+	// Add to the inputController
+	inputEventContext.add("mouseMove", mouseState);
 
 	// ------------
 	// Window stuff
 	// ------------
 
-
 	// Create a container to hold widgets
 	var mainContainer = frage.WindowLib.container({
 		pos: [100, 100],
-		ratio: [200, 200]
+		ratio: [200, 200],
+		drag: false
 	});
+
 	// Add it to a draw and logic layer
 	drawLayer.add("Container", mainContainer);
 	logicController.add("Container", mainContainer);
@@ -54,4 +64,16 @@ function createContent(data) {
 	// Add it to the mainContainer
 	mainContainer.add("backgroundWidget", backgroundWidget);
 
+	onRelease.add("container", function() {
+		mainContainer.drag = false;
+	});
+
+	onClick.add("container", function() {
+		mainContainer.drag = true;
+	});
+
+	mouseState.add("container", function(results) {
+		var mousePos = results["mouseMove"];
+		if (mainContainer.drag) mainContainer.pos = mousePos;
+	});
 }
