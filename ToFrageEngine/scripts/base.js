@@ -7,6 +7,24 @@ function Base() {
 		version: "1"
 	};
 
+	//ldp.r boolean
+	//ldp Takes two items and compares their type.
+	localContainer.areEqualType = function(is, equal) {
+		return Object.prototype.toString.call(is) === Object.prototype.toString.call(equal);
+	}
+
+	//ldp.p any
+	//ldp.r any
+	//ldp Takes a object or list and reverses it. Otherwise returns given item unchanged.
+	localContainer.reverse = function(item) {
+		var isObject = this.areEqualType(item, {});
+		var isArray = this.areEqualType(item, []);
+		var newItem = isObject ? {} : isArray ? [] : item;
+		if (isObject) for (var key in item) { newItem[item[key]] = key; }
+		else if (isArray) for (var index=item.length-1; index >= 0; index--) { newItem.push(item[index]); }
+		return newItem;
+	};
+
 	//ldp.p object !object !boolean
 	//ldp.r object
 	/*ldp Copies keys and values from the first object to the second overwritting

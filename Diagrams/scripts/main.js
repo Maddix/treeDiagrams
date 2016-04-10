@@ -13,6 +13,7 @@ function setup(toFrage) {
 	// Create all the layers we are going to use, order matters
 	layerController.add("background", frage.Graphics.getLayer());
 	layerController.add("draw", frage.Graphics.getLayer());
+
 	// Create an eventContext to handle input.
 	var inputEventContext = frage.Events.getEventContext();
 
@@ -33,16 +34,16 @@ function setup(toFrage) {
 function main(DATA) {
 
 	// Setup listeners for key and mouse input. It shouldn't be here but I'm moving things around.
-	var input = DATA.toFrage.Input.getInput();
+	var input = DATA.frage.Input.getInput();
 	input.addListeners();
 
 	// Create all the content
 	createContent(DATA);
 
 	// Make the loop
-	mainLoop = DATA.toFrage.Base.loop({func:function(frame) {
+	mainLoop = DATA.frage.Base.loop({func:function(frame) {
 		// update keys
-		//var gatheredData = DATA.toFrage.Base.extend(mouse.getInput(), key.getInput());
+		//var gatheredData = DATA.frage.Base.extend(mouse.getInput(), key.getInput());
 		DATA.inputEventContext.update(input.getInput()["input"]);
 		// Add project/collision layer
 		// update logic

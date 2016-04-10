@@ -42,6 +42,14 @@ function WindowLib(toFrage) {
 			});
 		};
 
+		local.add_orderedObject = local.add;
+		local.add = function(objectName, object) {
+			if (this.add_orderedObject(objectName, object)) {
+				if (this.context) object.setup(this.context);
+				return true;
+			}
+		};
+
 		local.updateLogic = function(frame) {
 			// Arrange children - In this case arrange free
 			this.iterateOverObjects(function(object) {

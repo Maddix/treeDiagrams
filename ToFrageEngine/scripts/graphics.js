@@ -497,7 +497,6 @@ function Graphics(Base) {
 		return local;
 	};
 
-
 	// Not tested yet.
 	//ldp.p object
 	//ldp.r object
@@ -522,7 +521,7 @@ function Graphics(Base) {
 				this.context.globalAlpha = this.alpha;
 				this.context.fillStyle = this.color;
 				this.context.fill();
-				// Rect border
+				//ldp Circle border
 				this.context.globalAlpha = this.borderAlpha;
 				this.context.lineJoin = this.borderStyle;
 				this.context.lineWidth = this.borderWidth;

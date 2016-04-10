@@ -6,8 +6,8 @@ function Events(toFrage) {
 
 	localContainer.actionEvent = function(config) {
 		var local = {
-			triggers: [],
-			returnOnSuccess: [],
+			triggers: [], // Anything that can be passed as input. Input might not be the best name..
+			deleteOnSuccess: [],
 			triggered: false
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(config), local);
@@ -33,8 +33,8 @@ function Events(toFrage) {
 				});
 
 				// Delete keys
-				for (var index=0; index < this.returnOnSuccess.length; index++) {
-					delete input[this.returnOnSuccess[index]];
+				for (var index=0; index < this.deleteOnSuccess.length; index++) {
+					delete input[this.deleteOnSuccess[index]];
 				}
 			}
 
@@ -47,7 +47,7 @@ function Events(toFrage) {
 	localContainer.stateEvent = function(config) {
 		var local = {
 			triggers: [], // ["shift", "control", "w"] // It will be turned into keycodes - not human readable.
-			returnOnSuccess: [] // ["shift", "control"] // Could be used for evil.. (╯°□°）╯︵ ┻━┻ Much power, great responsibility. ~ Doge
+			deleteOnSuccess: [] // ["w"] // Could be used for evil.. (╯°□°）╯︵ ┻━┻ Much power, great responsibility.
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(config), local);
 
@@ -66,8 +66,8 @@ function Events(toFrage) {
 			});
 
 			// Delete keys
-			for (var index=0; index < this.returnOnSuccess.length; index++) {
-				delete input[this.returnOnSuccess[index]];
+			for (var index=0; index < this.deleteOnSuccess.length; index++) {
+				delete input[this.deleteOnSuccess[index]];
 			}
 
 			return input;

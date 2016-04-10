@@ -3,11 +3,12 @@ function Diagram(frage) {
 		frage: frage
 	};
 
-	localContainer.diagramSquare = function(config) {
+	localContainer.infoSquare = function(textConfig, rectangleConfig, config) {
 		var local = {
-			text: this.frage.Graphics.text(),
-			rectangle: this.frage.Graphics.rectangle()
+			text: this.frage.Graphics.text(textConfig),
+			rectangle: this.frage.Graphics.rectangle(rectangleConfig)
 		};
+		this.frage.Base.extend(config, local);
 
 		local.updateGraphics = function() {
 			this.rectangle.updateGraphics();

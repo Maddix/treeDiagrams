@@ -27,16 +27,25 @@ function Input(toFrage) {
 			55:"&", 56:"*", 57:"(", 58:")", 189:"_", 187:"+",
 			219:"{", 221:"}", 220:"|", 186:":", 222:'"', 188:"<",
 			190:">", 191:"?", 192:"~"
-		}
+		},
+		reverseKeyMap: {},
+		reverseShiftKeyMap: {}
 	};
+	localContainer.reverseKeyMap = toFrage.Base.reverse(localContainer.defaultKeyMap);
+	localContainer.reverseShiftKeyMap = toFrage.Base.reverse(localContainer.defaultShiftKeyMap);
 
-	//local.createReversedKeyMap = function() {
-	//	this.keyMapReversed = {};
-	//	for (key in this.keyMapDefault) {
-	//		this.keyMapReversed[this.keyMapDefault[key]] = parseInt(key);
-	//	}
-	//};
-	//local.createReversedKeyMap(); // Call it here since we don't have a setup.
+	localContainer.getKey = function(keyName, shift) {
+		var isString = toFrage.Base.areEqualType(keyName, "");
+		keyName = isString ? keyName.toLowerCase() : keyName;
+
+		if (isString) {
+			if (shift) return keyName in this.reverseShiftKeyMap ? parseInt(this.reverseShiftKeyMap[keyName]) : -1;
+			else return keyName in this.reverseKeyMap ? parseInt(this.reverseKeyMap[keyName]) : -1;
+		} else {
+			if (shift) return keyName in this.defaultShiftKeyMap ? this.defaultShiftKeyMap[keyName] : "";
+			else return keyName in this.defaultKeyMap ? this.defaultKeyMap[keyName] : "";
+		}
+	}
 
 	localContainer.getInputManager = function(config) {
 		var local = {
@@ -66,6 +75,7 @@ function Input(toFrage) {
 		return local;
 	};
 
+	// Doesn't auth element.. :/ Needs reworking.
 	localContainer.getListenerManager = function(config) {
 		var local = {
 			listeners: []
@@ -105,6 +115,7 @@ function Input(toFrage) {
 		};
 		this.frage.Base.extend(this.getListenerManager(this.getInputManager(config)), local);
 
+		// My brain hurts just looking at the switching logic of 'matchingCombo'. It shouldn't be that hard bro.
 		local.notMatchingBlacklist = function() {
 			for (var keyComboName in this.blacklist) {
 				var keyCombo = this.blacklist[keyComboName];
