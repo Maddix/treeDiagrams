@@ -7,7 +7,8 @@ function Events(toFrage) {
 	localContainer.actionEvent = function(config) {
 		var local = {
 			triggers: [],
-			deleteOnSuccess: [],
+			deleteOnSuccess: [], // remove instead of delete? Which word is better?
+			includeIfTriggered: [], // Any other triggers and their data that you may want.
 			triggered: false, // State of the trigger at start.
 			triggerOn: true // Trigger if the data is there, other trigger when the data is wrong/missing/false.
 		};
@@ -27,6 +28,13 @@ function Events(toFrage) {
 
 			if (!this.triggered) {
 				this.triggered = true;
+
+				// Gather any other data from input
+				for (var index=0; index < this.includeIfTriggered.length; index++) {
+					var include = this.includeIfTriggered[index];
+					passToCallback[include] = input[include];
+				}
+
 
 				// Call callbacks.
 				this.iterateOverObjects(function(callback) {
@@ -49,6 +57,7 @@ function Events(toFrage) {
 		var local = {
 			triggers: [], // ["shift", "control", "w"] // It will be turned into keycodes - not human readable.
 			deleteOnSuccess: [] // ["w"] // Could be used for evil.. (╯°□°）╯︵ ┻━┻ Much power, great responsibility.
+			// triggerOn?
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(config), local);
 

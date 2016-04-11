@@ -17,6 +17,72 @@ function WindowLib(toFrage) {
 		};
 	};
 
+	localContainer.dragEvents = function(config) {
+		var local = {
+			beingDragged: false,
+			dragOffset: [0, 0]
+		};
+		this.frage.Base.extend(config, local);
+
+		local.onClick = function(data) {
+			var mouseMove = data["mouseMove"];
+			if (this.isMouseOver(mouseMove)) {
+				this.beingDragged = true;
+				this.dragOffset = [this.pos[0] - mouseMove[0], this.pos[1] - mouseMove[1]];
+			}
+		};
+
+		local.onRelease = function(data) {
+			console.log("fired!");
+			this.beingDragged = false;
+		};
+
+		local.onMouseMove = function(data) {
+			var mouseMove = data["mouseMove"];
+			if (this.beingDragged) this.pos = [mouseMove[0] + this.dragOffset[0], mouseMove[1] + this.dragOffset[1]];
+		};
+
+		//local.isMouseOver = function(mousePosition) {
+		//	return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.ratio, 0);
+		//};
+
+		return local;
+	};
+
+	localContainer.resizeEvents = function(config) {
+		var local = {
+			beingResized: false,
+			resizeOffset: [0, 0, 0, 0], // x, y, width, height
+			resizeBuffer: 10,
+			resizeBorders: [] // 1, 2, 3, 4 (left, top, right, bottom
+		};
+
+		local.onClick = function(data) {
+			var mousePos = data["mouseMove"];
+			var withinBounds = localContainer.frage.Math.checkWithinBounds;
+			if (this.isMouseOver(mousePos)) {
+				// left - pos, [offset, ratio[1]]
+				if (withinBounds(mousePos, this.pos, [this.resizeOffset, this.ratio[1]])) this.resizeBorders.push(1);
+				// top - pos, [ratio[0], offset]
+				if (withinBounds(mousePos, this.pos, [this.ratio[0], this.resizeOffset])) this.resizeBorders.push(2);
+				// right - [pos[0] + (ratio[0] - offset), pos[1]], [offset, ratio[1]]
+				if (withinBounds(mousePos, [this.pos[0] + (this.ratio[0] - this.resizeOffset), this.pos[1]], [this.resizeOffset, this.ratio[1]])) this.resizeBorders.push(3);
+				// bottom - [pos[0] + (ratio[1] - offset), pos[0]], [ratio[0], offset]
+				if (withinBounds(mousePos, [this.pos[1] + (this.ratio[1] - this.resizeOffset), this.pos[0]], [this.ratio[0], this.resizeOffset])) this.resizeBorders.push(4);
+			}
+		};
+
+		local.onRelease = function(data) {
+
+		};
+
+		local.onMouseMove = function(data) {
+
+		};
+
+		return local;
+	};
+
 	localContainer.container = function(config) {
 		var local = {
 			pos: [0, 0],
@@ -32,7 +98,7 @@ function WindowLib(toFrage) {
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(), local, true);
 		this.frage.Base.extend(this.widget(), local);
-		this.frage.Base.extend(config, local);
+		this.frage.Base.extend(this.dragEvents(config), local);
 
 		local.setup = function(context) {
 			this.context = context;
@@ -99,37 +165,6 @@ function WindowLib(toFrage) {
 
 		local.inputContext = function(input) {
 			return input;
-		};
-
-		return local;
-	};
-
-	localContainer.touchSquare = function(config) {
-		var local = {
-			haveFocus: false
-		};
-		this.frage.Base.extend(this.square(config), local);
-
-		local.inputContext = function(input) {
-			if (this.isMouseOver(input.mouse["mousePosition"])) {
-				if (input.keys["LMB"]) {
-					console.log("Pressed");
-					this.haveFocus = true;
-					delete input.keys["LMB"];
-				}
-
-				if (input.keys["LMB"] === false) {
-					console.log("Released!");
-					this.haveFocus = false;
-				}
-			}
-
-			if (input.keys["LMB"] === false && this.haveFocus) {
-				console.log("Released, but not action taken.");
-				this.haveFocus = false;
-			}
-
-			if (!this.haveFocus) return input;
 		};
 
 		return local;

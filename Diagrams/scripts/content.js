@@ -17,13 +17,14 @@ function createContent(data) {
 	// -----------------------------------------------------------
 
 	var onClick = frage.Events.actionEvent({
-		triggers: [1]
+		triggers: [1, "mouseMove"]
 	});
 	// Add to the inputController
 	inputEventContext.add("click", onClick);
 
 	var onRelease = frage.Events.actionEvent({
 		triggers: [1],
+		includeIfTriggered: ["mouseMove", "d"],
 		triggered: true,
 		triggerOn: false
 	});
@@ -43,8 +44,7 @@ function createContent(data) {
 	// Create a container to hold widgets
 	var mainContainer = frage.WindowLib.container({
 		pos: [100, 100],
-		ratio: [200, 200],
-		drag: false
+		ratio: [200, 200]
 	});
 
 	// Add it to a draw and logic layer
@@ -64,16 +64,21 @@ function createContent(data) {
 	// Add it to the mainContainer
 	mainContainer.add("backgroundWidget", backgroundWidget);
 
-	onRelease.add("container", function() {
-		mainContainer.drag = false;
-	});
 
-	onClick.add("container", function() {
-		mainContainer.drag = true;
-	});
+	onClick.add("containerDrag", function(data) { mainContainer.onClick(data); });
+	onRelease.add("containerDrag", function(data) { mainContainer.onRelease(data); });
+	mouseState.add("containerDrag", function(data) { mainContainer.onMouseMove(data); });
 
-	mouseState.add("container", function(results) {
-		var mousePos = results["mouseMove"];
-		if (mainContainer.drag) mainContainer.pos = mousePos;
-	});
+	//onRelease.add("container", function() {
+	//	mainContainer.drag = false;
+	//});
+
+	//onClick.add("container", function() {
+	//	mainContainer.drag = true;
+	//});
+
+	//mouseState.add("container", function(results) {
+	//	var mousePos = results["mouseMove"];
+	//	if (mainContainer.drag) mainContainer.pos = mousePos;
+	//});
 }
