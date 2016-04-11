@@ -8,23 +8,23 @@
 
 function GameMath() {
 	var local = {}
-	
+
 	local.intRandom = function(min, max) {
 		return parseInt(Math.random() * (max - min) + min);
 	};
-	
+
 	local.random = function(min, max) {
 		return Math.random() * (max - min) + min;
 	};
-	
+
 	local.toRadian = function(degree) {
 		return degree*Math.PI/180;
 	};
-	
+
 	local.toDegree = function(radian) {
 		return radian*180/Math.PI;
 	};
-	
+
 	local.getAverage = function(averageList) {
 		var total = 0;
 		for(var numberIndex in averageList) total += averageList[numberIndex];
@@ -36,13 +36,13 @@ function GameMath() {
 	local.getAngle = function(from, to) {
 		return Math.atan2((to[1] - from[1]), (to[0] - from[0]));
 	};
-	
+
 	// All angles should be in radians, positions should be in a lists, ([x, y])
 	local.rotateToAngle = function(pos, targetPos, currentAngle, angleOffset, turnRate) {
 		var targetAngle = getAngle(pos, targetPos) + angleOffset;
 		return slowTurn(currentAngle, targetAngle, turnRate);
 	};
-	
+
 	// Don't use unless you're sure!! Use rotateToAngle instead.
 	local.slowTurn = function(angle, targetAngle, turnRate) {
 		var newAngle = angle;
@@ -70,7 +70,7 @@ function GameMath() {
 	local.dotProduct = function(vectorOne, vectorTwo) {
 		return vectorOne[0]*vectorTwo[0] + vectorOne[1]*vectorTwo[1];
 	};
-	
+
 	// 2D cross product shortcut (Real cross is (A x B = ||A|| * ||B|| * sin(theta) * n) IDK what n stands for though..)
 	local.crossProduct = function(vectorOne, vectorTwo) {
 		return vectorOne[0]*vectorTwo[1] - vectorOne[1]*vectorTwo[0];
@@ -81,7 +81,7 @@ function GameMath() {
 	};
 
 	local.angleBetweenVectors = function(vectorOne, vectorTwo) {
-		return dotProduct(vectorOne, vectorTwo) / 
+		return dotProduct(vectorOne, vectorTwo) /
 			(vectorMagnitude(vectorOne)*vectorMagnitude(vectorTwo));
 	};
 
@@ -90,11 +90,11 @@ function GameMath() {
 	local.angularVelocity = function(offset, force, inertia) {
 		return crossProduct(offset, force)/inertia;
 	};
-	
+
 	// Angle is in radians
 	// http://stackoverflow.com/questions/2259476/rotating-a-point-about-another-point-2d
 	// Normal function
-	// Canvas already does this with transform(x, y), though I'm not sure how hard it would be to us it.
+	// Canvas already does this with transform(x, y), though I'm not sure how hard it would be to use it.
 	local.rotatePoint = function(point, angle) {
 		var angles = [Math.sin(angle), Math.cos(angle)];
 		return [(angles[1]*point[0] - angles[0]*point[1]),
@@ -102,7 +102,7 @@ function GameMath() {
 	};
 
 	local.getVelocityToAngle = function(acceleration, angle) {
-		return [acceleration * Math.sin(angle), 
+		return [acceleration * Math.sin(angle),
 				acceleration * -Math.cos(angle)];
 	};
 
@@ -114,10 +114,10 @@ function GameMath() {
 		if (pos[0] > boxOrigin[0] + boxRatio[0] + offset || pos[0] < boxOrigin[0] - offset) inside = false;
 		// top or bottom
 		else if (pos[1] > boxOrigin[1] + boxRatio[1] + offset || pos[1] < boxOrigin[1] - offset) inside = false;
-		
+
 		return inside;
 	};
-	
+
 	// This is used by the minimap to scale numbers to the right size
 	// needs a new name
 	local.scaleNumber = function(number, width, newWidth) {
@@ -135,6 +135,6 @@ function GameMath() {
 		if (objOneRadius + objTwoRadius >= distance) collision = true;
 		return collision;
 	};
-	
+
 	return local;
 };

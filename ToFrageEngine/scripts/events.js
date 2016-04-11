@@ -7,7 +7,7 @@ function Events(toFrage) {
 	localContainer.actionEvent = function(config) {
 		var local = {
 			triggers: [],
-			deleteOnSuccess: [], // remove instead of delete? Which word is better?
+			removeOnSuccess: [], // remove instead of delete? Which word is better?
 			includeIfTriggered: [], // Any other triggers and their data that you may want.
 			triggered: false, // State of the trigger at start.
 			triggerOn: true // Trigger if the data is there, other trigger when the data is wrong/missing/false.
@@ -42,8 +42,8 @@ function Events(toFrage) {
 				});
 
 				// Delete keys
-				for (var index=0; index < this.deleteOnSuccess.length; index++) {
-					delete input[this.deleteOnSuccess[index]];
+				for (var index=0; index < this.removeOnSuccess.length; index++) {
+					delete input[this.removeOnSuccess[index]];
 				}
 			}
 
@@ -56,7 +56,7 @@ function Events(toFrage) {
 	localContainer.stateEvent = function(config) {
 		var local = {
 			triggers: [], // ["shift", "control", "w"] // It will be turned into keycodes - not human readable.
-			deleteOnSuccess: [] // ["w"] // Could be used for evil.. (╯°□°）╯︵ ┻━┻ Much power, great responsibility.
+			removeOnSuccess: [] // ["w"] // Could be used for evil.. (╯°□°）╯︵ ┻━┻ Much power, great responsibility.
 			// triggerOn?
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(config), local);
@@ -76,8 +76,8 @@ function Events(toFrage) {
 			});
 
 			// Delete keys
-			for (var index=0; index < this.deleteOnSuccess.length; index++) {
-				delete input[this.deleteOnSuccess[index]];
+			for (var index=0; index < this.removeOnSuccess.length; index++) {
+				delete input[this.removeOnSuccess[index]];
 			}
 
 			return input;

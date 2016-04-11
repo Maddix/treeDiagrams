@@ -16,20 +16,39 @@ function createContent(data) {
 	// Create a Action and state event for dragging the container.
 	// -----------------------------------------------------------
 
-	var onClick = frage.Events.actionEvent({
-		triggers: [1, "mouseMove"]
+	var onResizeClick = frage.Events.actionEvent({
+		triggers: [1, "mouseMove"],
+		removeOnSuccess: [1]
 	});
 	// Add to the inputController
-	inputEventContext.add("click", onClick);
+	inputEventContext.add("clickResize", onResizeClick);
 
-	var onRelease = frage.Events.actionEvent({
+	var onResizeRelease = frage.Events.actionEvent({
 		triggers: [1],
+		removeOnSuccess: [1],
 		includeIfTriggered: ["mouseMove", "d"],
 		triggered: true,
 		triggerOn: false
 	});
 	// Add to the inputController
-	inputEventContext.add("clickRelease", onRelease);
+	inputEventContext.add("releaseResize", onResizeRelease);
+
+	var onDragClick = frage.Events.actionEvent({
+		triggers: [1, "mouseMove"],
+		removeOnSuccess: [1]
+	});
+	// Add to the inputController
+	inputEventContext.add("clickDrag", onDragClick);
+
+	var onDragRelease = frage.Events.actionEvent({
+		triggers: [1],
+		removeOnSuccess: [1],
+		includeIfTriggered: ["mouseMove", "d"],
+		triggered: true,
+		triggerOn: false
+	});
+	// Add to the inputController
+	inputEventContext.add("releaseDrag", onDragRelease);
 
 	var mouseState = frage.Events.stateEvent({
 		triggers: ["mouseMove"]
@@ -65,20 +84,16 @@ function createContent(data) {
 	mainContainer.add("backgroundWidget", backgroundWidget);
 
 
-	onClick.add("containerDrag", function(data) { mainContainer.onClick(data); });
-	onRelease.add("containerDrag", function(data) { mainContainer.onRelease(data); });
-	mouseState.add("containerDrag", function(data) { mainContainer.onMouseMove(data); });
+	// Resize
+	onResizeClick.add("containerResize", function(data) { mainContainer.onClickResize(data); });
+	onResizeRelease.add("containerResize", function(data) { mainContainer.onReleaseResize(data); });
+	mouseState.add("containerResize", function(data) { mainContainer.onMouseMoveResize(data); });
 
-	//onRelease.add("container", function() {
-	//	mainContainer.drag = false;
-	//});
+	// Drag
+	//onDragClick.add("containerDrag", function(data) { mainContainer.onClickDrag(data); });
+	//onDragRelease.add("containerDrag", function(data) { mainContainer.onReleaseDrag(data); });
+	//mouseState.add("containerDrag", function(data) { mainContainer.onMouseMoveDrag(data); });
 
-	//onClick.add("container", function() {
-	//	mainContainer.drag = true;
-	//});
 
-	//mouseState.add("container", function(results) {
-	//	var mousePos = results["mouseMove"];
-	//	if (mainContainer.drag) mainContainer.pos = mousePos;
-	//});
+
 }

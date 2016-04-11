@@ -24,7 +24,7 @@ function WindowLib(toFrage) {
 		};
 		this.frage.Base.extend(config, local);
 
-		local.onClick = function(data) {
+		local.onClickDrag = function(data) {
 			var mouseMove = data["mouseMove"];
 			if (this.isMouseOver(mouseMove)) {
 				this.beingDragged = true;
@@ -32,12 +32,11 @@ function WindowLib(toFrage) {
 			}
 		};
 
-		local.onRelease = function(data) {
-			console.log("fired!");
+		local.onReleaseDrag = function(data) {
 			this.beingDragged = false;
 		};
 
-		local.onMouseMove = function(data) {
+		local.onMouseMoveDrag = function(data) {
 			var mouseMove = data["mouseMove"];
 			if (this.beingDragged) this.pos = [mouseMove[0] + this.dragOffset[0], mouseMove[1] + this.dragOffset[1]];
 		};
@@ -52,32 +51,64 @@ function WindowLib(toFrage) {
 	localContainer.resizeEvents = function(config) {
 		var local = {
 			beingResized: false,
-			resizeOffset: [0, 0, 0, 0], // x, y, width, height
-			resizeBuffer: 10,
+			resizeOffset: 10,
+			resizeInitialPos: [0, 0], // These are needed if the square is trying to move at the same time as resizing. (*Cough* DragEvent mismanagment *Cough*)
+			resizeInitialRatio: [0, 0],
 			resizeBorders: [] // 1, 2, 3, 4 (left, top, right, bottom
 		};
+		this.frage.Base.extend(config, local);
 
-		local.onClick = function(data) {
+		local.onClickResize = function(data) {
 			var mousePos = data["mouseMove"];
 			var withinBounds = localContainer.frage.Math.checkWithinBounds;
+			this.resizeBorders = [];
 			if (this.isMouseOver(mousePos)) {
 				// left - pos, [offset, ratio[1]]
-				if (withinBounds(mousePos, this.pos, [this.resizeOffset, this.ratio[1]])) this.resizeBorders.push(1);
+				if (withinBounds(mousePos, this.pos, [this.resizeOffset, this.ratio[1]], 0)) this.resizeBorders.push(1);
 				// top - pos, [ratio[0], offset]
-				if (withinBounds(mousePos, this.pos, [this.ratio[0], this.resizeOffset])) this.resizeBorders.push(2);
+				if (withinBounds(mousePos, this.pos, [this.ratio[0], this.resizeOffset], 0)) this.resizeBorders.push(2);
 				// right - [pos[0] + (ratio[0] - offset), pos[1]], [offset, ratio[1]]
-				if (withinBounds(mousePos, [this.pos[0] + (this.ratio[0] - this.resizeOffset), this.pos[1]], [this.resizeOffset, this.ratio[1]])) this.resizeBorders.push(3);
+				if (withinBounds(mousePos, [this.pos[0] + (this.ratio[0] - this.resizeOffset), this.pos[1]], [this.resizeOffset, this.ratio[1]], 0)) this.resizeBorders.push(3);
 				// bottom - [pos[0] + (ratio[1] - offset), pos[0]], [ratio[0], offset]
-				if (withinBounds(mousePos, [this.pos[1] + (this.ratio[1] - this.resizeOffset), this.pos[0]], [this.ratio[0], this.resizeOffset])) this.resizeBorders.push(4);
+				if (withinBounds(mousePos, [this.pos[0], this.pos[1] + (this.ratio[1] - this.resizeOffset)], [this.ratio[0], this.resizeOffset], 0)) this.resizeBorders.push(4);
+			}
+			if (this.resizeBorders.length) {
+				this.beingResized = true;
+				this.resizeInitialPos = localContainer.frage.Base.deepCopy(this.pos);
+				this.resizeInitialRatio = localContainer.frage.Base.deepCopy(this.ratio);
 			}
 		};
 
-		local.onRelease = function(data) {
+		local.onReleaseResize = function(data) {
+			this.beingResized = false;
+			// Confirm movement?
 
 		};
 
-		local.onMouseMove = function(data) {
-
+		local.onMouseMoveResize = function(data) {
+			var mousePos = data["mouseMove"];
+			if (this.beingResized) {
+				console.log("Fired! resize indexs:", this.resizeBorders);
+				for (var index=0; index < this.resizeBorders.length; index++) {
+					var side = this.resizeBorders[index];
+					if (side == 1) { // left
+						this.pos[0] = mousePos[0];
+						this.ratio[0] = this.resizeInitialPos[0] + this.resizeInitialRatio[0] - mousePos[0];
+					}
+					if (side == 2) { // top
+						this.pos[1] = mousePos[1];
+						this.ratio[1] = this.resizeInitialPos[1] + this.resizeInitialRatio[1] - mousePos[1];
+					}
+					if (side == 3) { // right
+						this.ratio[0] = mousePos[0] - this.pos[0];
+						//this.pos[0] = this.pos[0] + mousePos[0];
+					}
+					if (side == 4) { // bottom
+						this.ratio[1] = mousePos[1] - this.pos[1];
+						//this.pos[1] = this.pos[1] + mousePos[1];
+					}
+				}
+			}
 		};
 
 		return local;
@@ -98,7 +129,7 @@ function WindowLib(toFrage) {
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(), local, true);
 		this.frage.Base.extend(this.widget(), local);
-		this.frage.Base.extend(this.dragEvents(config), local);
+		this.frage.Base.extend(this.dragEvents(this.resizeEvents(config)), local);
 
 		local.setup = function(context) {
 			this.context = context;
