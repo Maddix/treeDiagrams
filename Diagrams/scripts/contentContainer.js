@@ -59,7 +59,6 @@ function createContainer(data) {
 
 	// I feel like this is a hacky way of doing it. They should just layer automatically depending on what you have going on. :/
 	resizeEventGroup.get("clickResize").add("containerResize", function(data) {
-		console.log("Fired?");
 		if (container.onClickResize(data)) containerEventContext.get("dragEventGroup").suspend();
 	});
 	resizeEventGroup.get("releaseResize").add("containerResize", function(data) {

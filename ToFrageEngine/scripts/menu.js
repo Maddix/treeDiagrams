@@ -57,9 +57,7 @@ function WindowLib(toFrage) {
 		var local = {
 			beingResized: false,
 			resizeOffset: 10,
-			resizeInitialPos: [0, 0], // These are needed if the square is trying to move at the same time as resizing. (*Cough* DragEvent mismanagment *Cough*)
-			resizeInitialRatio: [0, 0],
-			resizeBorders: [] // 1, 2, 3, 4 (left, top, right, bottom
+			resizeBorders: [] // 1, 2, 3, 4 (left, top, right, bottom)
 		};
 		this.frage.Base.extend(config, local);
 
@@ -79,8 +77,6 @@ function WindowLib(toFrage) {
 			}
 			if (this.resizeBorders.length) {
 				this.beingResized = true;
-				this.resizeInitialPos = localContainer.frage.Base.deepCopy(this.pos);
-				this.resizeInitialRatio = localContainer.frage.Base.deepCopy(this.ratio);
 				return true;
 			}
 		};
@@ -88,8 +84,6 @@ function WindowLib(toFrage) {
 		local.onReleaseResize = function(data) {
 			this.beingResized = false;
 			return true;
-			// Confirm movement?
-
 		};
 
 		local.onMouseMoveResize = function(data) {
@@ -99,20 +93,18 @@ function WindowLib(toFrage) {
 				for (var index=0; index < this.resizeBorders.length; index++) {
 					var side = this.resizeBorders[index];
 					if (side == 1) { // left
+						this.ratio[0] = this.pos[0] + this.ratio[0] - mousePos[0];
 						this.pos[0] = mousePos[0];
-						this.ratio[0] = this.resizeInitialPos[0] + this.resizeInitialRatio[0] - mousePos[0];
 					}
 					if (side == 2) { // top
+						this.ratio[1] = this.pos[1] + this.ratio[1] - mousePos[1];
 						this.pos[1] = mousePos[1];
-						this.ratio[1] = this.resizeInitialPos[1] + this.resizeInitialRatio[1] - mousePos[1];
 					}
 					if (side == 3) { // right
 						this.ratio[0] = mousePos[0] - this.pos[0];
-						//this.pos[0] = this.pos[0] + mousePos[0];
 					}
 					if (side == 4) { // bottom
 						this.ratio[1] = mousePos[1] - this.pos[1];
-						//this.pos[1] = this.pos[1] + mousePos[1];
 					}
 				}
 				return true;
@@ -137,6 +129,8 @@ function WindowLib(toFrage) {
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(), local, true);
 		this.frage.Base.extend(this.widget(), local);
+
+		// These won't be normally; just here for testing.
 		this.frage.Base.extend(this.dragEvents(this.resizeEvents(config)), local);
 
 		local.setup = function(context) {
