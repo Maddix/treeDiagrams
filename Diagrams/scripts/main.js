@@ -44,7 +44,7 @@ function main(DATA) {
 	mainLoop = DATA.frage.Base.loop({func:function(frame) {
 		// update keys
 		//var gatheredData = DATA.frage.Base.extend(mouse.getInput(), key.getInput());
-		DATA.inputEventContext.update(input.getInput()["input"]);
+		DATA.inputEventContext.updateEvent(input.getInput()["input"]);
 		// Add project/collision layer
 		// update logic
 		DATA.logicController.update(frame);

@@ -14,6 +14,13 @@ function Events(toFrage) {
 		};
 		this.frage.Base.extend(this.frage.Base.orderedObject(config), local);
 
+		// Yey side effects! ¯\_(ツ)_/¯
+		local.removeFromInput = function(input) {
+			for (var index=0; index < this.removeOnSuccess.length; index++) {
+				delete input[this.removeOnSuccess[index]];
+			}
+		};
+
 		local.updateEvent = function(input) {
 			if (!this.triggered) var passToCallback = {};
 			for (var index=0; index < this.triggers.length; index++) {
@@ -35,16 +42,12 @@ function Events(toFrage) {
 					passToCallback[include] = input[include];
 				}
 
-
 				// Call callbacks.
 				this.iterateOverObjects(function(callback) {
 					callback(passToCallback);
 				});
 
-				// Delete keys
-				for (var index=0; index < this.removeOnSuccess.length; index++) {
-					delete input[this.removeOnSuccess[index]];
-				}
+				this.removeFromInput(input);
 			}
 
 			return input;
@@ -104,11 +107,11 @@ function Events(toFrage) {
 			this.onHold = false;
 		};
 
-		local.state = function() {
+		local.getState = function() {
 			return this.onHold;
 		};
 
-		local.update = function(input) {
+		local.updateEvent = function(input) {
 			if (!this.onHold) {
 				var remaining = input;
 				this.iterateOverObjects(function(object, name) {

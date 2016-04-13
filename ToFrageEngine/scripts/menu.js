@@ -29,16 +29,21 @@ function WindowLib(toFrage) {
 			if (this.isMouseOver(mouseMove)) {
 				this.beingDragged = true;
 				this.dragOffset = [this.pos[0] - mouseMove[0], this.pos[1] - mouseMove[1]];
+				return true;
 			}
 		};
 
 		local.onReleaseDrag = function(data) {
 			this.beingDragged = false;
+			return true;
 		};
 
 		local.onMouseMoveDrag = function(data) {
 			var mouseMove = data["mouseMove"];
-			if (this.beingDragged) this.pos = [mouseMove[0] + this.dragOffset[0], mouseMove[1] + this.dragOffset[1]];
+			if (this.beingDragged) {
+				this.pos = [mouseMove[0] + this.dragOffset[0], mouseMove[1] + this.dragOffset[1]];
+				return true;
+			}
 		};
 
 		//local.isMouseOver = function(mousePosition) {
@@ -76,11 +81,13 @@ function WindowLib(toFrage) {
 				this.beingResized = true;
 				this.resizeInitialPos = localContainer.frage.Base.deepCopy(this.pos);
 				this.resizeInitialRatio = localContainer.frage.Base.deepCopy(this.ratio);
+				return true;
 			}
 		};
 
 		local.onReleaseResize = function(data) {
 			this.beingResized = false;
+			return true;
 			// Confirm movement?
 
 		};
@@ -108,6 +115,7 @@ function WindowLib(toFrage) {
 						//this.pos[1] = this.pos[1] + mousePos[1];
 					}
 				}
+				return true;
 			}
 		};
 
