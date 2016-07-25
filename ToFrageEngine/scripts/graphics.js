@@ -1,4 +1,4 @@
-function Graphics(Base) {
+function Graphics(creation) {
 	var localContainer = {
 		version: "1"
 	};
@@ -88,10 +88,10 @@ function Graphics(Base) {
 			}
 		};
 		//ldp.e
-		Base.extend(Base.orderedObject(), local, true);
+		engine.Creation.import(engine.Creation.orderedDictionary(), local);
 
 		//ldp Preserve parent function
-		local.add_ordered = local.add;
+		local.parent_add = local.add;
 
 		//ldp.p element string list<int, int ..> boolean
 		//ldp Creates a canvas element and then gets the canvas 2d object by default.
@@ -111,7 +111,7 @@ function Graphics(Base) {
 		//ldp If objectName is false or undefined (and all other validation checks out) then a number will be assigned and returned as a string instead of true.
 		local.add = function(objectName, object) {
 			var objectName = objectName || (this.objectCount++).toString();
-			if (this.add_ordered(objectName, object)) {
+			if (this.parent_add(objectName, object)) {
 				object.setup(this.context);
 				return this.objectCount == objectName ? objectName : true;
 			}
@@ -137,33 +137,31 @@ function Graphics(Base) {
 			ratio: [640, 480],
 			is3d: false,
 			div: null, // Pass in a div if your not planning on creating one
+			divAttributes: {
+				id: "engine",
+				oncontextmenu: "return false;",
+				style: undefined
+			},
+			container: undefined,
 			validate: function(object) {
 				if (object.setup) return true;
 			}
 		};
-
 		//ldp.e
-		Base.extend(Base.orderedObject(), local, true);
-		Base.extend(config, local);
-
-		//ldp If divAttributes hasn't been added then go ahead and add them.
-		if (!local.divAttributes) {
-			local.divAttributes = {
-				id: "toFrage",
-				oncontextmenu: "return false;",
-				style: "position: relative; width: {0}; height: {1};".format(
-					localContainer.makeCssPixel(local.ratio[0]),
-					localContainer.makeCssPixel(local.ratio[1])
-				)
-			}
-		}
+		creation.compose(creation.orderedDictionary(), local, config);
 
 		//ldp Preserve parent function
-		local.add_ordered = local.add;
+		local.parent_add = local.add;
 
 		//ldp.p element
 		//ldp Creates or receives a div and adds attributes ot it.
 		local.setup = function(container) {
+			if (!this.divAttributes.style) {
+				this.divAttributes.style = "position: relative; width: {0}; height: {1};".format(
+					localContainer.makeCssPixel(local.ratio[0]),
+					localContainer.makeCssPixel(local.ratio[1]));
+			}
+
 			var div = document.createElement("div");
 			for (var key in this.divAttributes) {
 				div.setAttribute(key, this.divAttributes[key]);
@@ -171,12 +169,13 @@ function Graphics(Base) {
 			container.appendChild(div);
 			this.div = div;
 		};
+		if (local.container) local.setup(local.container);
 
 		//ldp.p string object
 		//ldp.r true if the layer was added.
 		//ldp Adds a layer object and calls setup on it.
 		local.add = function(objectName, object) {
-			if (this.add_ordered(objectName, object)) {
+			if (this.parent_add(objectName, object)) {
 				var layerId = "Layer".concat(this.layerCountId++, "_", objectName);
 				object.setup(this.div, layerId, this.ratio, this.is3d);
 				return true;
@@ -197,12 +196,12 @@ function Graphics(Base) {
 	//ldp.r object
 	//ldp The simplest drawable object.
 	localContainer.drawable = function(config) {
-		var local = Base.extend(config, {
+		var local = creation.compose({
 			pos: [0, 0],
 			alpha: 1,
 			context: null,
 			setup: function(context) {this.context = context;}
-		});
+		}, config);
 		//ldp This is where you would put your drawing code. As this is an example I'm leaving it commented due to performance concerns.
 		//local.updateGraphics = function() {};
 		return local;
@@ -224,7 +223,7 @@ function Graphics(Base) {
 			imageSmoothing: true
 		};
 		//ldp.e
-		Base.extend(this.drawable(config), local);
+		creation.compose(local, this.drawable(), config);
 
 		//ldp Sets the image smoothing on the context. Calling outside of drawing will waste CPU time.
 		local.setContextImageSmoothingEnabled = function() {

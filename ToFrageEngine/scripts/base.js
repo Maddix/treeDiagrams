@@ -1,150 +1,10 @@
 // Lisp Document Parser
 
 //ldp Acts like a namespace.
-function Base() {
+function Util() {
 	//ldp.main
 	var localContainer = {
 		version: "1"
-	};
-
-	//ldp.r boolean
-	//ldp Takes two items and compares their type.
-	localContainer.areEqualType = function(is, equal) {
-		return Object.prototype.toString.call(is) === Object.prototype.toString.call(equal);
-	}
-
-	//ldp.p any
-	//ldp.r any
-	//ldp Takes a object or list and reverses it. Otherwise returns given item unchanged.
-	localContainer.reverse = function(item) {
-		var isObject = this.areEqualType(item, {});
-		var isArray = this.areEqualType(item, []);
-		var newItem = isObject ? {} : isArray ? [] : item;
-		if (isObject) for (var key in item) { newItem[item[key]] = key; }
-		else if (isArray) for (var index=item.length-1; index >= 0; index--) { newItem.push(item[index]); }
-		return newItem;
-	};
-
-	//ldp.p object !object !boolean
-	//ldp.r object
-	/*ldp Copies keys and values from the first object to the second overwritting
-		items in the second in the process. Set overwrite to true to keep the first
-		object from overwritting defined keys in the second object.
-
-		It only works with objects and does not make a deep copy.
-	*/
-	localContainer.extend = function(piece, object, overwrite) {
-		object = object ? object : {};
-		if (piece) for (var item in piece) if (!object[item] || !overwrite) object[item] = piece[item];
-		return object;
-	}
-
-	//ldp.p list?object
-	//ldp.r list?object
-	//ldp Deep copies a object or a list.
-	localContainer.deepCopy = function(item) {
-		var itemProto = Object.prototype.toString.call(item);
-		var newItem = item;
-		var getItem = function(child) { return localContainer.deepCopy(child); };
-		if (itemProto === Object.prototype.toString.call([])) {
-			newItem = [];
-			for (var itemIndex=0, len=item.length; itemIndex < len; itemIndex++) newItem.push(getItem(item[itemIndex]));
-		}
-		if (itemProto === Object.prototype.toString.call({})) {
-			newItem = {};
-			for (var itemIndex in item) newItem[itemIndex] = getItem(item[itemIndex])
-				}
-		return newItem;
-	};
-
-	//ldp.p !object !boolean
-	//ldp.r object
-	/*ldp
-		Should I add hasObject, getObjectNames functions?
-		Should I rename the object theme to be more general?
-		If lite is true then only include add and remove functions in the returned object.
-	*/
-	localContainer.orderedObject = function(config, lite) {
-		//ldp.mainReturn
-		var local = {
-			objects: {},
-			objectNames: [],
-			//ldp validate is a function that takes a object and returns a bool depending if the object has what you want.
-			validate: function(object) {
-				return true;
-			}
-		};
-		//ldp.e config
-		this.extend(config, local);
-
-		//ldp.p string item
-		//ldp.r true if item was added, undefined otherwise.
-		//ldp Takes a name and item and stores it if the item has pass validation and then returns true.
- 		local.add = function(objectName, object) {
-			if (this.validate && this.validate(object)) {
-				this.objects[objectName] = object;
-				this.objectNames.push(objectName);
-				return true;
-			}
-		};
-
-		//ldp.p string
-		//ldp.r item if found, false otherwise.
-		//ldp Returns the object connected with given key.
-		local.get = function(objectName) {
-			if (objectName in this.objects) {
-				return this.objects[objectName];
-			}
-		};
-
-		//ldp.p string
-		//ldp.r item if found, undefined otherwise.
-		//ldp Removes a item matching the given name and returns it.
-		local.remove = function(objectName) {
-			if (objectName in this.objects) {
-				var object = this.objects[objectName];
-				delete this.objects[objectName];
-				this.objectNames.splice(this.objectNames.indexOf(objectName), 1);
-				return object;
-			}
-		};
-
-		if (!lite) {
-			//ldp.p string !number
-			//ldp.r true if items position was changed, undefined otherwise.
-			/*ldp Changes the position of a item with the given name. Leave newIndex blank if you
-				want to move the object to the end.
-			*/
-			local.changePosition = function(objectName, newIndex) {
-				if (objectName in this.objects) {
-					this.objectNames.splice(this.objectNames.indexOf(objectName), 1);
-					if (newIndex >= 0 && newIndex < this.objectNames.length) this.objectNames.splice(newIndex, 0, objectName);
-					else this.objectNames.push(objectName);
-					return true;
-				}
-			};
-
-			// Should this be here or should it be a general standalone function?
-			// 'func' is a function that takes a object and its name. 'objectNames' is a list of strings. Not required.
-			// 'objects' is a list of objects. Not required.
-			//ldp.p function !list<string ..> !object<string, item ..>
-			/*ldp Iterates over this.objects and repeatedly calls func with each item and
-				name. If the function returns true then break, if it returns false then
-				continue (skip to the next object). If you pass a list of keys and a object
-				it will iterate other that instead.
-			*/
-			local.iterateOverObjects = function(func, objectNames, objects) {
-				objectNames = objectNames || this.objectNames;
-				objects = objects || this.objects;
-				for (var nameIndex=0; nameIndex < objectNames.length; nameIndex++) {
-					// Might not be completely clear. If you return true then we break. Return false to continue.
-					// Should I pull 'objectNames[nameIndex]' into a var?
-					if (func(objects[objectNames[nameIndex]], objectNames[nameIndex])) break;
-				}
-			}
-		}
-
-		return local;
 	};
 
 	//ldp.p object function !string
@@ -167,7 +27,6 @@ function Base() {
 			imageObjects[imageName] = image;
 		}
 	};
-
 
 	//ldp.p !object
 	//ldp.r object

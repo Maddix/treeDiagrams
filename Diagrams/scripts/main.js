@@ -1,14 +1,14 @@
-function setup(toFrage) {
-	var frage = toFrage;
+function setup() {
+	var engine = Engine();
 
 	// Create the layerController (AKA - Graphic controller)
-	var layerController = frage.Graphics.getLayerController({
+	var layerController = engine.Graphics.getLayerController({
 		ratio: [1024, 640]
 	});
 	layerController.setup(document.getElementById("container"));
 
 	// Create Logic controller
-	var logicController = frage.Base.getLogicController();
+	var logicController = engine.Utils.getLogicController();
 
 	// Create all the layers we are going to use, order matters
 	layerController.add("background", frage.Graphics.getLayer());
@@ -59,3 +59,4 @@ function main(DATA) {
 	// Put a handle on the loop
 	DATA.mainLoop = mainLoop;
 }
+

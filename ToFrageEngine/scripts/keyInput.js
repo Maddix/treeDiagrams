@@ -1,11 +1,10 @@
 // This uses Jquery 2.0.3 and Jquary-mousewheel(https://github.com/brandonaaron/jquery-mousewheel)
 // Note for mousedown/up, event.which ~ 1 for left, 2 for middle, 3 for right
 
-function Input(toFrage) {
+function Input(creation) {
 	var localContainer = {
 		version: "1.0",
 		requires: "Jquery 2.0.3+ and Jquery-mousewheel",
-		frage:toFrage,
 		defaultKeyMap: { // Keep in mind that the key-codes are from the Jquery event.which, need to add in special characters
 			65:"a", 66:"b", 67:"c", 68:"d", 69:"e", 70:"f", 71:"g",
 			72:"h", 73:"i", 74:"j", 75:"k", 76:"l", 77:"m", 78:"n",
@@ -31,11 +30,11 @@ function Input(toFrage) {
 		reverseKeyMap: {},
 		reverseShiftKeyMap: {}
 	};
-	localContainer.reverseKeyMap = toFrage.Base.reverse(localContainer.defaultKeyMap);
-	localContainer.reverseShiftKeyMap = toFrage.Base.reverse(localContainer.defaultShiftKeyMap);
+	localContainer.reverseKeyMap = creation.invert(localContainer.defaultKeyMap);
+	localContainer.reverseShiftKeyMap = creation.invert(localContainer.defaultShiftKeyMap);
 
 	localContainer.getKey = function(keyName, shift) {
-		var isString = toFrage.Base.areEqualType(keyName, "");
+		var isString = creation.isType(keyName, "");
 		keyName = isString ? keyName.toLowerCase() : keyName;
 
 		if (isString) {
@@ -52,7 +51,7 @@ function Input(toFrage) {
 			rawInput: {},
 			rawInputOrder: []
 		};
-		this.frage.Base.extend(config, local);
+		creation.compose(local, config);
 
 		local.addInput = function(input, value) {
 			this.rawInput[input] = value;
@@ -67,8 +66,8 @@ function Input(toFrage) {
 
 		local.getInput = function() {
 			return {
-				input: localContainer.frage.Base.deepCopy(this.rawInput),
-				inputOrder: localContainer.frage.Base.deepCopy(this.rawInputOrder)
+				input: creation.deepCopy(this.rawInput),
+				inputOrder: creation.deepCopy(this.rawInputOrder)
 			};
 		};
 
@@ -80,7 +79,7 @@ function Input(toFrage) {
 		var local = {
 			listeners: []
 		};
-		this.frage.Base.extend(config, local);
+		creation.compose(local, config);
 
 		local.addListenerTo = function(element, listenerName, callback) {
 			$(element).on(listenerName, callback);
@@ -113,7 +112,7 @@ function Input(toFrage) {
 			// Only used for keys
 			blacklist: {"Ctrl-R":[17, 82], "F5":[116], "Ctrl-Shift-C":[17, 16, 67]} // {"description":[key, ..], ..}
 		};
-		this.frage.Base.extend(this.getListenerManager(this.getInputManager(config)), local);
+		creation.compose(local, this.getListenerManager(), this.getInputManager(), config);
 
 		// My brain hurts just looking at the switching logic of 'matchingCombo'. It shouldn't be that hard bro.
 		local.notMatchingBlacklist = function() {

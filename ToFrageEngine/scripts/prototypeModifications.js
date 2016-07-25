@@ -8,3 +8,9 @@ if (!String.prototype.format) { // Just to be safe.
 		});
 	};
 }
+
+if (!Array.prototype.any) Array.prototype.any = function(func) {
+	var result = false;
+	this.map(function(item, index) { if (!result && func(item, index)) result = true; });
+	return result;
+};
