@@ -13,7 +13,7 @@
 	<script src="../ToFrageEngine/scripts/math.js"></script>
 	<script src="../ToFrageEngine/scripts/creation.js"></script>
 	<script src="../ToFrageEngine/scripts/util.js"></script>
-	<!--<script src="../ToFrageEngine/scripts/graphics.js"></script> -->
+	<script src="../ToFrageEngine/scripts/graphics.js"></script>
 	<!-- <script src="../ToFrageEngine/scripts/events.js"></script> -->
 	<!-- <script src="../ToFrageEngine/scripts/keyInput.js"></script> -->
 	<!-- <script src="../ToFrageEngine/scripts/particles.js"></script> -->
@@ -26,8 +26,9 @@
 	<script type="text/javascript">
 		$(function() {
 			//setup();
-			creation = Creation()
-			util = Util()
+			creation = Creation();
+			util = Util();
+			graphics = Graphics(creation);
 		});
 	</script>
 

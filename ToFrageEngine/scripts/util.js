@@ -23,6 +23,7 @@ function Util(creation) {
 
 		getLogicController: function(config) {
 			return creation.compose(creation.orderedDictionary(), {
+				supername: "logicController",
 				validate: function(object) {
 					return !!object.updateLogic;
 				},
@@ -36,6 +37,7 @@ function Util(creation) {
 
 		loop: function(config) {
 			var object = creation.compose({
+				superName: "loop",
 				fps: 60,
 				timePerFrame: 1000/60,
 				func: undefined,

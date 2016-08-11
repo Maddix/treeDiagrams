@@ -78,61 +78,47 @@ function Graphics(creation) {
 	//ldp.r object
 	//ldp Creates a canvas element and manages it. Used for drawing to the screen.
 	localContainer.getLayer = function() {
-		var local = {
+		return creation.compose(creation.orderedDictionary(), {
+			superName: "graphicLayer",
 			canvas: undefined,
 			context: undefined,
 			objectCount: 0,
 			style: "position: absolute; background-color: transparent;",
 			validate: function(object) {
 				if (object.updateGraphics && object.setup) return true;
+			},
+			//ldp Creates a canvas element and then gets the canvas 2d object by default.
+			setup: function(container, id, ratio, is3d) {
+				var canvas = document.createElement("canvas");
+				canvas.setAttribute("id", id);
+				canvas.setAttribute("width", localContainer.makeCssPixel(ratio[0]));
+				canvas.setAttribute("height", localContainer.makeCssPixel(ratio[1]));
+				canvas.setAttribute("style", this.style);
+				this.context = canvas.getContext(is3d ? "3d" : "2d");
+				container.appendChild(canvas);
+				this.canvas = canvas;
+			},
+			//ldp If objectName is false or undefined (and all other validation checks out) then a number will be assigned and returned as a string instead of true.
+			add: function(objectName, object) {
+				var objectName = objectName || (this.objectCount++).toString();
+				if (arguments.callee.super["orderedDictionary"](objectName, object)) {
+					object.setup(this.context);
+					return this.objectCount == objectName ? objectName : true;
+				}
+			},
+			//ldp Clear the context and then have all the object draw.
+			updateGraphics: function() {
+				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+				this.iterateOverObjects(function(object) {
+					object.updateGraphics();
+				});
 			}
-		};
-		//ldp.e
-		engine.Creation.import(engine.Creation.orderedDictionary(), local);
+		});
+	}
 
-		//ldp Preserve parent function
-		local.parent_add = local.add;
-
-		//ldp.p element string list<int, int ..> boolean
-		//ldp Creates a canvas element and then gets the canvas 2d object by default.
-		local.setup = function(container, id, ratio, is3d) {
-			var canvas = document.createElement("canvas");
-			canvas.setAttribute("id", id);
-			canvas.setAttribute("width", localContainer.makeCssPixel(ratio[0]));
-			canvas.setAttribute("height", localContainer.makeCssPixel(ratio[1]));
-			canvas.setAttribute("style", this.style);
-			this.context = canvas.getContext(is3d ? "3d" : "2d");
-			container.appendChild(canvas);
-			this.canvas = canvas;
-		};
-
-		//ldp.p objectName GraphicsConplient
-		//ldp.r string?true
-		//ldp If objectName is false or undefined (and all other validation checks out) then a number will be assigned and returned as a string instead of true.
-		local.add = function(objectName, object) {
-			var objectName = objectName || (this.objectCount++).toString();
-			if (this.parent_add(objectName, object)) {
-				object.setup(this.context);
-				return this.objectCount == objectName ? objectName : true;
-			}
-		};
-
-		//ldp Clear the context and then have all the object draw.
-		local.updateGraphics = function() {
-			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			this.iterateOverObjects(function(object) {
-				object.updateGraphics();
-			});
-		};
-
-		return local;
-	};
-
-	//ldp.p object
-	//ldp.r object
-	//ldp Holds data on how the layers should be created and then manages them.
 	localContainer.getLayerController = function(config) {
-		var local = {
+		var local = creation.compose(creation.orderedDictionary(), {
+			superName: "graphicController",
 			layerCountId: 0,
 			ratio: [640, 480],
 			is3d: false,
@@ -145,50 +131,36 @@ function Graphics(creation) {
 			container: undefined,
 			validate: function(object) {
 				if (object.setup) return true;
-			}
-		};
-		//ldp.e
-		creation.compose(creation.orderedDictionary(), local, config);
+			},
+			setup: function(container) {
+				if (!this.divAttributes.style) {
+					this.divAttributes.style = "position: relative; width: {0}; height: {1};".format(
+						localContainer.makeCssPixel(local.ratio[0]),
+						localContainer.makeCssPixel(local.ratio[1]));
+				}
 
-		//ldp Preserve parent function
-		local.parent_add = local.add;
-
-		//ldp.p element
-		//ldp Creates or receives a div and adds attributes ot it.
-		local.setup = function(container) {
-			if (!this.divAttributes.style) {
-				this.divAttributes.style = "position: relative; width: {0}; height: {1};".format(
-					localContainer.makeCssPixel(local.ratio[0]),
-					localContainer.makeCssPixel(local.ratio[1]));
+				var div = document.createElement("div");
+				for (var key in this.divAttributes) {
+					div.setAttribute(key, this.divAttributes[key]);
+				}
+				container.appendChild(div);
+				this.div = div;
+			},
+			add: function(objectName, object) {
+				if (arguments.callee.super["orderedDictionary"](objectName, object)) {
+					var layerId = "Layer".concat(this.layerCountId++, "_", objectName);
+					object.setup(this.div, layerId, this.ratio, this.is3d);
+					return true;
+				}
+			},
+			update: function() {
+				this.iterateOverObjects(function(object) {
+					object.updateGraphics();
+				});
 			}
+		}, config);
 
-			var div = document.createElement("div");
-			for (var key in this.divAttributes) {
-				div.setAttribute(key, this.divAttributes[key]);
-			}
-			container.appendChild(div);
-			this.div = div;
-		};
 		if (local.container) local.setup(local.container);
-
-		//ldp.p string object
-		//ldp.r true if the layer was added.
-		//ldp Adds a layer object and calls setup on it.
-		local.add = function(objectName, object) {
-			if (this.parent_add(objectName, object)) {
-				var layerId = "Layer".concat(this.layerCountId++, "_", objectName);
-				object.setup(this.div, layerId, this.ratio, this.is3d);
-				return true;
-			}
-		};
-
-		//ldp Updates each layer.
-		local.update = function() {
-			this.iterateOverObjects(function(object) {
-				object.updateGraphics();
-			});
-		};
-
 		return local;
 	};
 
@@ -196,15 +168,15 @@ function Graphics(creation) {
 	//ldp.r object
 	//ldp The simplest drawable object.
 	localContainer.drawable = function(config) {
-		var local = creation.compose({
+		return creation.compose({
+			superName:"drawable",
 			pos: [0, 0],
 			alpha: 1,
 			context: null,
 			setup: function(context) {this.context = context;}
 		}, config);
-		//ldp This is where you would put your drawing code. As this is an example I'm leaving it commented due to performance concerns.
-		//local.updateGraphics = function() {};
-		return local;
+		// This is where you would put your drawing code. As this is an example I'm leaving it commented due to performance concerns.
+		//updateGraphics: function() {};
 	};
 
 	//ldp.p object
@@ -214,41 +186,34 @@ function Graphics(creation) {
 		will be enabled and disabled depending on if the 'scale' is greater then 1 or less then 1.
 	*/
 	localContainer.image = function(config) {
-		var local = {
+		return creation.compose({
+			superName: "image",
 			image: null,
 			rotation: 0,
 			offset: [0, 0],
 			scale: 1,
 			automaticImageSmoothing: true,
-			imageSmoothing: true
-		};
-		//ldp.e
-		creation.compose(local, this.drawable(), config);
-
-		//ldp Sets the image smoothing on the context. Calling outside of drawing will waste CPU time.
-		local.setContextImageSmoothingEnabled = function() {
-			this.context.imageSmoothingEnabled = this.automaticImageSmoothing ? (this.scale > 1 ? false : true) : this.imageSmoothing;
-		};
-
-		//ldp Sets the alpha for the image and then draws it.
-		local.updateGraphics = function() {
-			this.context.globalAlpha = this.alpha;
-			this.setContextImageSmoothingEnabled();
-			localContainer.drawImageScale(
-				this.context,
-				this.image,
-				this.offset,
-				this.pos,
-				this.rotation,
-				this.scale
-			);
-		};
-
-		return local;
+			imageSmoothing: true,
+			//ldp Sets the image smoothing on the context. Calling outside of drawing will waste CPU time.
+			setContextImageSmoothingEnabled: function() {
+				this.context.imageSmoothingEnabled = this.automaticImageSmoothing ? (this.scale > 1 ? false : true) : this.imageSmoothing;
+			},
+			// Sets the alpha for the image and then draws it.
+			updateGraphics: function() {
+				this.context.globalAlpha = this.alpha;
+				this.setContextImageSmoothingEnabled();
+				localContainer.drawImageScale(
+					this.context,
+					this.image,
+					this.offset,
+					this.pos,
+					this.rotation,
+					this.scale
+				);
+			}
+		}, localContainer.drawable(), config);
 	};
 
-	//ldp.p object
-	//ldp.r object
 	//ldp Will animate over a spritesheet with keyframes. Is not automatic so you will have to set 'currentFrame' to the proper frame.
 	localContainer.animationManual = function(config) {
 		var local = {
@@ -373,8 +338,6 @@ function Graphics(creation) {
 		return local;
 	};
 
-	//ldp.p object number
-	//ldp.r object
 	//ldp Creates a object that will render text. I will need to make another pass when I start using this again.
 	localContainer.text = function(config, fontWidth) {
 		// Can't be touched from outside the constructor. (^'u')^ - {yey}
@@ -382,117 +345,92 @@ function Graphics(creation) {
 			width: 0, // This is determined by the height and length of local.text
 			height: fontWidth ? fontWidth : 12
 		};
-		var local = {
+
+		return creation.compose({
+			superName: "text",
 			text: "null",
 			font: "Arial",
 			color: "white",
 			align: "start", // start, end, left, center, right
-			baseline: "alphabetic" // top, bottom, middle, alphabetic, hanging
-		};
-		//ldp.e
-		Base.extend(this.drawable(config), local);
-
-		//ldp.p number
-		//ldp Set the height of the text.
-		local.setSize = function(height) {
-			privateLocal.height = height;
-		};
-
-		//ldp.r list<number, number>
-		//ldp get the size of the text.
-		local.getSize = function() {
-			return [privateLocal.width, privateLocal.height];
-		};
-
-		//ldp Set the font on the context.
-		local.setFont = function() {
-			this.context.font = "{0} {1}".format(localContainer.makeCssPixel(privateLocal.height), this.font);
-		};
-
-		//ldp Set the font and get the width of the text
-		local.getTextWidth = function() {
-			this.setFont();
-			privateLocal.width = this.context.measureText(this.text).width;
-		};
-
-		//ldp Render the text
-		local.updateGraphics = function() {
-			this.context.globalAlpha = this.alpha;
-			this.context.fillStyle = this.color;
-			this.context.textAlign = this.align;
-			this.context.textBaseline = this.baseline;
-			this.setFont();
-			this.context.fillText(this.text, this.pos[0], this.pos[1]);
-		};
-
-		return local;
+			baseline: "alphabetic", // top, bottom, middle, alphabetic, hanging
+			//ldp Set the height of the text.
+			setSize: function(height) {
+				privateLocal.height = height;
+			},
+			//ldp get the size of the text.
+			getSize: function() {
+				return [privateLocal.width, privateLocal.height];
+			},
+			//ldp Set the font on the context.
+			setFont: function() {
+				this.context.font = "{0} {1}".format(localContainer.makeCssPixel(privateLocal.height), this.font);
+			},
+			//ldp Set the font and get the width of the text
+			getTextWidth: function() {
+				this.setFont();
+				privateLocal.width = this.context.measureText(this.text).width;
+			},
+			//ldp Render the text
+			updateGraphics: function() {
+				this.context.globalAlpha = this.alpha;
+				this.context.fillStyle = this.color;
+				this.context.textAlign = this.align;
+				this.context.textBaseline = this.baseline;
+				this.setFont();
+				this.context.fillText(this.text, this.pos[0], this.pos[1]);
+			}
+		}, localContainer.drawable(), config);
 	};
 
-	//ldp.p object
-	//ldp.r object
 	//ldp Defines common things in shapes.
 	localContainer.shape = function(config) {
-		var local = {
+		return creation.compose({
 			ratio:[100, 100],
 			color:"white" // Should it be black?
-		};
-		//ldp.e
-		Base.extend(this.drawable(config), local);
-		return local;
+		}, localContainer.drawable(), config);
 	};
 
-	//ldp.p object
-	//ldp.r object
-	//ldp Defines common things with borders around shapes.
+	// Defines common things with borders around shapes.
+	// I don't need a superName since I have no functions
 	localContainer.border = function(config) {
-		var local = {
+		return creation.compose({
 			borderWidth:1,
 			borderColor:"black",
 			borderStyle:"round", // bevel, round, miter
-			borderAlpha:1
-		};
-		//ldp.e
-		Base.extend(config, local);
-		return local;
-	};
-
-	//ldp.p object
-	//ldp.r object
-	//ldp Draws a rectangle with or without a border.
-	localContainer.rectangle = function(config) {
-		var local = {
-			includeBorder: true
-		};
-		//ldp.e
-		Base.extend(this.shape(config.includeBorder ? this.border(config) : config), local);
-
-		//ldp Set the right draw function
-		if (local.includeBorder) {
-			//ldp Draw the rectangle with a border.
-			local.updateGraphics = function() {
-				this.context.beginPath();
-				this.context.rect(this.pos[0], this.pos[1], this.ratio[0], this.ratio[1]);
-				this.context.globalAlpha = this.alpha;
-				this.context.fillStyle = this.color;
-				this.context.fill();
-				// Rect border
+			borderAlpha:1,
+			drawBorder: function() {
 				this.context.globalAlpha = this.borderAlpha;
 				this.context.lineJoin = this.borderStyle;
 				this.context.lineWidth = this.borderWidth;
 				this.context.strokeStyle = this.borderColor;
 				this.context.stroke();
-			};
-		} else {
-			//ldp Draw the rectangle without a border.
-			local.updateGraphics = function() {
+			}
+		}, config);
+	};
+
+	//ldp Draws a rectangle without a border.
+	localContainer.rectangle = function(config) {
+		return creation.compose({
+			superName: "rectangle",
+			includeBorder: true,
+			updateGraphics: function() {
 				this.context.beginPath();
 				this.context.rect(this.pos[0], this.pos[1], this.ratio[0], this.ratio[1]);
 				this.context.globalAlpha = this.alpha;
 				this.context.fillStyle = this.color;
 				this.context.fill();
-			};
-		}
+			}
+		}, localContainer.shape(), config);
+	};
 
+	localContainer.borderedRectangle = function(config) {
+		var local = creation.compose(localContainer.rectangle(), localContainer.border(), {
+			updateGraphics: function() {
+				arguments.callee.super["rectangle"]();
+				this.drawBorder();
+			}
+		}, config);
+		local.superName = "borderedRectangle";
 		return local;
 	};
 

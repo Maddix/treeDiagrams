@@ -37,16 +37,17 @@ function Creation() {
 		return newItem;
 	};
 
+	// Reserved keywords are objectName and function.super
 	localContainer.extend = function(from, to) {
 		if (from && to) for (var key in from) {
-			var item = to[key];
-			if (item && this.isType(item, {})) this.extend(from[key], item);
-			else to[key] = from[key];
+			var previousItem = to[key];
+			if (previousItem && this.isType(previousItem, {})) this.extend(from[key], previousItem);
+			else if (key != "superName") to[key] = from[key];
 
-			// Keep track of older functions and bind them from 'from' to 'to'
-			if (item && this.isType(item, Function) && this.isType(from[key], Function)) {
-				if (!to[key].parentFunctions) to[key].parentFunctions = [];
-				to[key].parentFunctions.push(item.bind(to));
+			// Keep track of older functions nameIndex bind them from 'from' to 'to'
+			if (previousItem && this.isType(previousItem, Function) && this.isType(from[key], Function)) {
+				if (!to[key].super) to[key].super = {};
+				to[key].super[to.superName] = previousItem.bind(to);
 			}
 		}
 		return to;
@@ -69,6 +70,7 @@ function Creation() {
 
 	localContainer.orderedDictionary = function(config) {
 		return this.compose({
+			superName: "orderedDictionary",
 			objects: {},
 			objectNames: [],
 			validate: function(object) {
