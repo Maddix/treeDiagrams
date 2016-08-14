@@ -1,5 +1,5 @@
 function createContent(data) {
-	var frage = data.frage;
+	var engine = data.engine;
 
 	var backgroundLayer = data.layerController.get("background");
 	var drawLayer = data.layerController.get("draw");
@@ -7,32 +7,18 @@ function createContent(data) {
 	var logicController = data.logicController;
 	var inputEventContext = data.inputEventContext;
 
-	drawLayer.add("background", frage.Graphics.rectangle({
-		includeBorder: false,
+	drawLayer.add("background", engine.Graphics.rectangle({
 		color: "#a26b59",
-		ratio: data.screenRatio
+		area: data.screenArea
 	}));
 
-	// --------------
-	// General events
-	// --------------
-
-	var mouseState = frage.Events.stateEvent({
-		triggers: ["mouseMove"]
+	var action = engine.Events.actionEvent({
+		triggers: [87]
 	});
-	// Add to the inputController
-	inputEventContext.add("mouseMove", mouseState);
+	action.add("log", function(eventObject) {
+		console.log(eventObject);
+	});
 
-	// ------------
-	// Window stuff
-	// ------------
-
-	// Create the container
-	var container = createContainer(data);
-
-	// Add it to a draw and logic layer
-	drawLayer.add("Container", container);
-	logicController.add("Container", container);
-
+	data.inputEventContext.add("wasd trigger", action);
 
 }

@@ -50,14 +50,14 @@ function Graphics(creation) {
 
 	//ldp.p canvasContext image list<number, number> list<number, number> number number list<number, number> list<number, number>
 	//ldp Draws an image on the context with the given offset, position, rotation, and scale as well as clipping the image and then resets the context.
-	localContainer.drawImageClip = function(context, image, imageOffset, position, rotation, scale, clipPosition, clipRatio) {
+	localContainer.drawImageClip = function(context, image, imageOffset, position, rotation, scale, clipPosition, clipArea) {
 		this.contextTranslateRotate(context, position, rotation);
 		context.drawImage(
 			image,
 			clipPosition[0],
 			clipPosition[1],
-			clipRatio[0],
-			clipRatio[1],
+			clipArea[0],
+			clipArea[1],
 			(-imageOffset[0]/2)*scale,
 			(-imageOffset[1]/2)*scale,
 			imageOffset[0]*scale,
@@ -88,11 +88,11 @@ function Graphics(creation) {
 				if (object.updateGraphics && object.setup) return true;
 			},
 			//ldp Creates a canvas element and then gets the canvas 2d object by default.
-			setup: function(container, id, ratio, is3d) {
+			setup: function(container, id, area, is3d) {
 				var canvas = document.createElement("canvas");
 				canvas.setAttribute("id", id);
-				canvas.setAttribute("width", localContainer.makeCssPixel(ratio[0]));
-				canvas.setAttribute("height", localContainer.makeCssPixel(ratio[1]));
+				canvas.setAttribute("width", localContainer.makeCssPixel(area[0]));
+				canvas.setAttribute("height", localContainer.makeCssPixel(area[1]));
 				canvas.setAttribute("style", this.style);
 				this.context = canvas.getContext(is3d ? "3d" : "2d");
 				container.appendChild(canvas);
@@ -120,7 +120,7 @@ function Graphics(creation) {
 		var local = creation.compose(creation.orderedDictionary(), {
 			superName: "graphicController",
 			layerCountId: 0,
-			ratio: [640, 480],
+			area: [640, 480],
 			is3d: false,
 			div: null, // Pass in a div if your not planning on creating one
 			divAttributes: {
@@ -135,8 +135,8 @@ function Graphics(creation) {
 			setup: function(container) {
 				if (!this.divAttributes.style) {
 					this.divAttributes.style = "position: relative; width: {0}; height: {1};".format(
-						localContainer.makeCssPixel(local.ratio[0]),
-						localContainer.makeCssPixel(local.ratio[1]));
+						localContainer.makeCssPixel(local.area[0]),
+						localContainer.makeCssPixel(local.area[1]));
 				}
 
 				var div = document.createElement("div");
@@ -149,7 +149,7 @@ function Graphics(creation) {
 			add: function(objectName, object) {
 				if (arguments.callee.super["orderedDictionary"](objectName, object)) {
 					var layerId = "Layer".concat(this.layerCountId++, "_", objectName);
-					object.setup(this.div, layerId, this.ratio, this.is3d);
+					object.setup(this.div, layerId, this.area, this.is3d);
 					return true;
 				}
 			},
@@ -385,7 +385,7 @@ function Graphics(creation) {
 	//ldp Defines common things in shapes.
 	localContainer.shape = function(config) {
 		return creation.compose({
-			ratio:[100, 100],
+			area:[100, 100],
 			color:"white" // Should it be black?
 		}, localContainer.drawable(), config);
 	};
@@ -415,7 +415,7 @@ function Graphics(creation) {
 			includeBorder: true,
 			updateGraphics: function() {
 				this.context.beginPath();
-				this.context.rect(this.pos[0], this.pos[1], this.ratio[0], this.ratio[1]);
+				this.context.rect(this.pos[0], this.pos[1], this.area[0], this.area[1]);
 				this.context.globalAlpha = this.alpha;
 				this.context.fillStyle = this.color;
 				this.context.fill();
@@ -434,48 +434,33 @@ function Graphics(creation) {
 		return local;
 	};
 
-	// Not tested yet.
-	//ldp.p object
-	//ldp.r object
-	//ldp Draws a circle.
+
+	// Not testing yet
 	localContainer.circle = function(config) {
-		var local = {
-			includeBorder: true,
-			angleRatio: [0, 2*Math.PI],
+		return creation.compose({
+			superName: "circle",
+			angleArea: [0, 2*Math.PI],
 			radius: 100,
 			clockwise: true,
-			color: "white"
-		};
-		//ldp.e
-		Base.extend(this.drawable(config.includeBorder ? this.border(config) : config), local);
-
-		//ldp Set the right draw function
-		if (local.includeBorder) {
-			//ldp Draw the rectangle with a border.
-			local.updateGraphics = function() {
+			color: "white",
+			updateGraphics: function() {
 				this.context.beginPath();
-				this.context.arc(this.pos[0], this.pos[1], this.radius, this.angleRatio[0], this.angleRatio[1], this.clockwise);
+				this.context.arc(this.pos[0], this.pos[1], this.radius, this.angleArea[0], this.angleArea[1], this.clockwise);
 				this.context.globalAlpha = this.alpha;
 				this.context.fillStyle = this.color;
 				this.context.fill();
-				//ldp Circle border
-				this.context.globalAlpha = this.borderAlpha;
-				this.context.lineJoin = this.borderStyle;
-				this.context.lineWidth = this.borderWidth;
-				this.context.strokeStyle = this.borderColor;
-				this.context.stroke();
-			};
-		} else {
-			//ldp Draw the rectangle without a border.
-			local.updateGraphics = function() {
-				this.context.beginPath();
-				this.context.arc(this.pos[0], this.pos[1], this.radius, this.angleRatio[0], this.angleRatio[1], this.clockwise);
-				this.context.globalAlpha = this.alpha;
-				this.context.fillStyle = this.color;
-				this.context.fill();
-			};
-		}
+			}
+		}, localContainer.drawable(), config);
+	};
 
+	localContainer.borderedCircle = function(config) {
+		var local = creation.compose(localContainer.circle(), localContainer.border(), {
+			updateGraphics: function() {
+				arguments.callee.super["circle"]();
+				this.drawBorder();
+			}
+		});
+		local.superName = "borderedCircle";
 		return local;
 	};
 
@@ -495,7 +480,7 @@ function Graphics(creation) {
 			this.context.globalAlpha = this.alpha;
 			this.context.beginPath(); // Needed. Major lag if removed.
 			this.context.moveTo(this.pos[0], this.pos[1]);
-			this.context.lineTo(this.pos[0] + this.ratio[0], this.pos[1] + this.ratio[1]);
+			this.context.lineTo(this.pos[0] + this.area[0], this.pos[1] + this.area[1]);
 			this.context.closePath(); // ? Not so sure if needed.
 			this.context.lineJoin = this.style;
 			this.context.lineWidth = this.lineWidth;
@@ -512,18 +497,18 @@ function Graphics(creation) {
 		var local = {
 			style: "round",
 			lineWidth: 1,
-			shape: [] // Holds lists of points, each new list is a new line -> [[startX,startY, x,y, ..], [startX,startY, x,y], ..]
+			area: [] // Holds lists of points, each new list is a new line -> [[startX,startY, x,y, ..], [startX,startY, x,y], ..]
 		};
 		//ldp.e
-		Base(this.shape(config), local);
+		Base(this.area(config), local);
 
 		//ldp Draw all the lines.
 		local.updateGraphics = function() {
 			this.context.globalAlpha = this.alpha;
 			this.context.beginPath();
-			for (var lineIndex=0; lineIndex < this.shape.length; lineIndex++) {
-				for (var pointIndex=0; pointIndex < this.shape[lineIndex].length; pointIndex+=2) {
-					var line = this.shape[lineIndex];
+			for (var lineIndex=0; lineIndex < this.area.length; lineIndex++) {
+				for (var pointIndex=0; pointIndex < this.area[lineIndex].length; pointIndex+=2) {
+					var line = this.area[lineIndex];
 					if (pointIndex === 0) this.context.moveTo(this.pos[0] + line[pointIndex], this.pos[1] + line[pointIndex+1]);
 					else this.context.lineTo(this.pos[0] + line[pointIndex], this.pos[1] + line[pointIndex+1]);
 				}

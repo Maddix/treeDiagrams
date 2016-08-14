@@ -10,11 +10,11 @@ function Engine() {
 	engine.author = "Maddix";
 	engine.Math = GameMath()
 	engine.Creation = Creation();
-	engine.Util = Util();
-	engine.Graphics = Graphics();
-	engine.WindowLib = WindowLib();
-	engine.Events = Events();
+	engine.Util = Util(engine.Creation);
+	engine.Graphics = Graphics(engine.Creation);
+	engine.WindowLib = WindowLib(engine);
+	engine.Events = Events(engine);
 	engine.Input = Input(engine.Creation);
-	engine.Particles = Particles();
+	//engine.Particles = Particles();
 	return engine;
 };

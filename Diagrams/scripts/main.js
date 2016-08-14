@@ -3,28 +3,31 @@ function setup() {
 
 	// Create the layerController (AKA - Graphic controller)
 	var layerController = engine.Graphics.getLayerController({
-		ratio: [1024, 640]
+		area: [1024, 640],
+		container: document.getElementById("container")
 	});
-	layerController.setup(document.getElementById("container"));
 
 	// Create Logic controller
-	var logicController = engine.Utils.getLogicController();
+	var logicController = engine.Util.getLogicController();
 
 	// Create all the layers we are going to use, order matters
-	layerController.add("background", frage.Graphics.getLayer());
-	layerController.add("draw", frage.Graphics.getLayer());
+	layerController.add("background", engine.Graphics.getLayer());
+	layerController.add("draw", engine.Graphics.getLayer());
 
-	// Create an eventContext to handle input.
-	var inputEventContext = frage.Events.getEventContext();
+	// Create input and an eventContext to handle it.
+	var input = engine.Input.getInput();
+	input.addListeners();
+	var inputEventContext = engine.Events.getEventContext();
 
 	// Data object
 	var DATA = {
 		layerController: layerController,
 		logicController: logicController,
-		screenRatio: layerController.ratio,
+		screenArea: layerController.area,
+		input: input,
 		inputEventContext: inputEventContext,
 		mainLoop: undefined,
-		frage: frage,
+		engine: engine,
 	};
 
 	// Start main
@@ -33,25 +36,18 @@ function setup() {
 
 function main(DATA) {
 
-	// Setup listeners for key and mouse input. It shouldn't be here but I'm moving things around.
-	var input = DATA.frage.Input.getInput();
-	input.addListeners();
-
 	// Create all the content
 	createContent(DATA);
 
-	// Make the loop
-	mainLoop = DATA.frage.Base.loop({func:function(frame) {
-		// update keys
-		//var gatheredData = DATA.frage.Base.extend(mouse.getInput(), key.getInput());
-		DATA.inputEventContext.updateEvent(input.getInput()["input"]);
-		// Add project/collision layer
-		// update logic
-		DATA.logicController.update(frame);
-		// Update all the layers in the layerController
-		DATA.layerController.update();
+	//console.log(DATA.inputEventContext);
 
-	}, fps:60, useRAF:true, modifier:1}); // opera won't do 60 FPS (canvas max) if set to 60, to get around that set it to 80.
+	// Make the loop
+	mainLoop = DATA.engine.Util.loop({func:function(frame) {
+		var keyInput = DATA.input.getInput()["input"];
+		DATA.inputEventContext.updateEvent(keyInput); 	// Get latest input
+		DATA.logicController.update(frame); 							// Update the logic
+		DATA.layerController.update(); 									// Update the graphics
+	}, fps:60, useRAF:true, modifier:1});
 
 	// Kick off the loop
 	mainLoop.start();

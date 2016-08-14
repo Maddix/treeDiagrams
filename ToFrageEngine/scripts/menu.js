@@ -1,7 +1,7 @@
 // /////////////
 // Window system
 
-function WindowLib(toFrage) {
+function WindowLib(engine) {
 	var localContainer = {
 		version: "1.0",
 		frage: toFrage
@@ -10,10 +10,10 @@ function WindowLib(toFrage) {
 	localContainer.widget = function() {
 		return {
 			arrangePos: [0, 0], // 0 to 1
-			arrangeRatio: [1, 1], // 0 to 1
-			isMouseOver: function(mousePosition) {
-				return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.ratio, 0);
-			}
+			arrangeShape: [1, 1], // 0 to 1
+			//isMouseOver: function(mousePosition) {
+			//	return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.shape, 0);
+			//}
 		};
 	};
 
@@ -47,7 +47,7 @@ function WindowLib(toFrage) {
 		};
 
 		//local.isMouseOver = function(mousePosition) {
-		//	return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.ratio, 0);
+		//	return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.shape, 0);
 		//};
 
 		return local;
@@ -66,14 +66,14 @@ function WindowLib(toFrage) {
 			var withinBounds = localContainer.frage.Math.checkWithinBounds;
 			this.resizeBorders = [];
 			if (this.isMouseOver(mousePos)) {
-				// left - pos, [offset, ratio[1]]
-				if (withinBounds(mousePos, this.pos, [this.resizeOffset, this.ratio[1]], 0)) this.resizeBorders.push(1);
-				// top - pos, [ratio[0], offset]
-				if (withinBounds(mousePos, this.pos, [this.ratio[0], this.resizeOffset], 0)) this.resizeBorders.push(2);
-				// right - [pos[0] + (ratio[0] - offset), pos[1]], [offset, ratio[1]]
-				if (withinBounds(mousePos, [this.pos[0] + (this.ratio[0] - this.resizeOffset), this.pos[1]], [this.resizeOffset, this.ratio[1]], 0)) this.resizeBorders.push(3);
-				// bottom - [pos[0] + (ratio[1] - offset), pos[0]], [ratio[0], offset]
-				if (withinBounds(mousePos, [this.pos[0], this.pos[1] + (this.ratio[1] - this.resizeOffset)], [this.ratio[0], this.resizeOffset], 0)) this.resizeBorders.push(4);
+				// left - pos, [offset, shape[1]]
+				if (withinBounds(mousePos, this.pos, [this.resizeOffset, this.shape[1]], 0)) this.resizeBorders.push(1);
+				// top - pos, [shape[0], offset]
+				if (withinBounds(mousePos, this.pos, [this.shape[0], this.resizeOffset], 0)) this.resizeBorders.push(2);
+				// right - [pos[0] + (shape[0] - offset), pos[1]], [offset, shape[1]]
+				if (withinBounds(mousePos, [this.pos[0] + (this.shape[0] - this.resizeOffset), this.pos[1]], [this.resizeOffset, this.shape[1]], 0)) this.resizeBorders.push(3);
+				// bottom - [pos[0] + (shape[1] - offset), pos[0]], [shape[0], offset]
+				if (withinBounds(mousePos, [this.pos[0], this.pos[1] + (this.shape[1] - this.resizeOffset)], [this.shape[0], this.resizeOffset], 0)) this.resizeBorders.push(4);
 			}
 			if (this.resizeBorders.length) {
 				this.beingResized = true;
@@ -93,18 +93,18 @@ function WindowLib(toFrage) {
 				for (var index=0; index < this.resizeBorders.length; index++) {
 					var side = this.resizeBorders[index];
 					if (side == 1) { // left
-						this.ratio[0] = this.pos[0] + this.ratio[0] - mousePos[0];
+						this.shape[0] = this.pos[0] + this.shape[0] - mousePos[0];
 						this.pos[0] = mousePos[0];
 					}
 					if (side == 2) { // top
-						this.ratio[1] = this.pos[1] + this.ratio[1] - mousePos[1];
+						this.shape[1] = this.pos[1] + this.shape[1] - mousePos[1];
 						this.pos[1] = mousePos[1];
 					}
 					if (side == 3) { // right
-						this.ratio[0] = mousePos[0] - this.pos[0];
+						this.shape[0] = mousePos[0] - this.pos[0];
 					}
 					if (side == 4) { // bottom
-						this.ratio[1] = mousePos[1] - this.pos[1];
+						this.shape[1] = mousePos[1] - this.pos[1];
 					}
 				}
 				return true;
@@ -115,61 +115,51 @@ function WindowLib(toFrage) {
 	};
 
 	localContainer.container = function(config) {
-		var local = {
+		var local =  engine.Creation.compose(engine.Creation.orderedDictionary(), localContainer.widget(), {
 			pos: [0, 0],
-			ratio: [0, 0],
+			shape: [0, 0],
 			arrangePos: [.5, .5],
-			arrangeRatio: [.5, .5],
+			arrangeShape: [.5, .5],
 			context: undefined,
 			validate: function(object) {
 				if (object.setup
 					&& object.arrangePos
-					&& object.arrangeRatio) return true;
+					&& object.arrangeShape) return true;
+			},
+			setup: function(context) {
+				this.context = context;
+				this.iterateOverObjects(function(object) {
+					object.setup(context);
+
+				});
+			},
+			add: function(objectName, object) {
+				if (arguments.callee.super["orderedDictionary"](objectName, object)) {
+					if (this.context) object.setup(this.context);
+					return true;
+				}
+			},
+			updateLogic: function(frame) {
+				// Arrange children - In this case arrange free
+				this.iterateOverObjects(function(object) {
+					object.pos = [
+						local.pos[0] + (local.shape[0] * object.arrangePos[0]),
+						local.pos[1] + (local.shape[1] * object.arrangePos[1])
+					];
+					object.shape = [
+						local.shape[0] * object.arrangeShape[0],
+						local.shape[1] * object.arrangeShape[1],
+					];
+					object.updateLogic(frame);
+				});
+			},
+			updateGraphics: function() {
+				this.iterateOverObjects(function(object) {
+					object.updateGraphics();
+				});
 			}
-		};
-		this.frage.Base.extend(this.frage.Base.orderedObject(), local, true);
-		this.frage.Base.extend(this.widget(), local);
-
-		// These won't be normally; just here for testing.
-		this.frage.Base.extend(this.dragEvents(this.resizeEvents(config)), local);
-
-		local.setup = function(context) {
-			this.context = context;
-			this.iterateOverObjects(function(object) {
-				object.setup(context);
-
-			});
-		};
-
-		local.add_orderedObject = local.add;
-		local.add = function(objectName, object) {
-			if (this.add_orderedObject(objectName, object)) {
-				if (this.context) object.setup(this.context);
-				return true;
-			}
-		};
-
-		local.updateLogic = function(frame) {
-			// Arrange children - In this case arrange free
-			this.iterateOverObjects(function(object) {
-				object.pos = [
-					local.pos[0] + (local.ratio[0] * object.arrangePos[0]),
-					local.pos[1] + (local.ratio[1] * object.arrangePos[1])
-				];
-				object.ratio = [
-					local.ratio[0] * object.arrangeRatio[0],
-					local.ratio[1] * object.arrangeRatio[1],
-				];
-				object.updateLogic(frame);
-			});
-		};
-
-		local.updateGraphics = function() {
-			this.iterateOverObjects(function(object) {
-				object.updateGraphics();
-			});
-		};
-
+		}, config);
+		local.superName = "container";
 		return local;
 	};
 
