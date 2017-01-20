@@ -86,6 +86,7 @@ function Input(creation) {
 					return true;
 				}
 			},
+			// May explode. :o
 			removeListenersFrom: function(element) {
 				for (var index=0; index > this.listeners; index++) {
 					this.removeListener(element, this.listeners[index]);
@@ -124,8 +125,8 @@ function Input(creation) {
 				});
 
 				this.addListenerTo(this.mouseElement, "mousemove", function(jqueryMouseEvent) {
-					local.removeInput("mousePos");
-					local.addInput("mousePos", [
+					local.removeInput("mouseMove");
+					local.addInput("mouseMove", [
 						jqueryMouseEvent.pageX - $(local.mouseElement).offset().left,
 						jqueryMouseEvent.pageY - $(local.mouseElement).offset().top
 					]);
@@ -136,9 +137,9 @@ function Input(creation) {
 					this.addListenerTo(this.mouseElement, "mousewheel", function(jqueryMouseEvent) {
 						var delta = [jqueryMouseEvent.deltaX, jqueryMouseEvent.deltaY];
 						// normalize the scroll delta
-						for (var index=0; index < delta.length; delta++){
+						for (var index=0, len=delta.length; index < len; index++) {
 							if (delta[index] > 1) delta[index] = 1;
-							if (delta[index] < -1) delta[index] = -1;
+							else if (delta[index] < -1) delta[index] = -1;
 						}
 						local.removeInput("mouseWheel");
 						local.addInput("mouseWheel", delta);

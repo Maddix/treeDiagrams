@@ -45,8 +45,8 @@ function main(DATA) {
 	mainLoop = DATA.engine.Util.loop({func:function(frame) {
 		var keyInput = DATA.input.getInput()["input"];
 		DATA.inputEventContext.updateEvent(keyInput); 	// Get latest input
-		DATA.logicController.update(frame); 							// Update the logic
-		DATA.layerController.update(); 									// Update the graphics
+		DATA.logicController.update(frame); 			// Update the logic
+		DATA.layerController.update(); 					// Update the graphics
 	}, fps:60, useRAF:true, modifier:1});
 
 	// Kick off the loop
@@ -55,4 +55,3 @@ function main(DATA) {
 	// Put a handle on the loop
 	DATA.mainLoop = mainLoop;
 }
-

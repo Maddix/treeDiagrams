@@ -18,7 +18,7 @@ function Events(engine) {
 			},
 			updateEventCheck: function (input) { return true; },
 			updateEvent: function(input) {
-				if (!this.updateEventCheck(input)) return input; // Bail if we don't pass the check.
+				if (this.updateEventCheck(input)) return input; // Bail if we don't pass the check.
 
 				if (!this.triggered) var passToCallback = {};
 				for (var index=0; index < this.triggers.length; index++) {
@@ -60,7 +60,7 @@ function Events(engine) {
 			// triggerOn?
 			updateEventCheck: function (input) { return true; },
 			updateEvent: function(input) {
-				if (!this.updateEventCheck(input)) return input; // Bail if we don't pass the check.
+				if (this.updateEventCheck(input)) return input; // Bail if we don't pass the check.
 
 				var passToCallback = {};
 				// Check if all the required keys are active, bail out otherwise
@@ -102,7 +102,7 @@ function Events(engine) {
 			},
 			updateEventCheck: function (input) { return true; },
 			updateEvent: function(input) {
-				if (!this.onHold || !this.updateEventCheck(input)) {
+				if (!this.onHold && this.updateEventCheck(input)) {
 					var remaining = input;
 					this.iterateOverObjects(function(object, name) {
 						if (remaining) remaining = object.updateEvent(input);

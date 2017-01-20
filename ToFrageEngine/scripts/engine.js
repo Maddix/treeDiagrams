@@ -12,7 +12,7 @@ function Engine() {
 	engine.Creation = Creation();
 	engine.Util = Util(engine.Creation);
 	engine.Graphics = Graphics(engine.Creation);
-	engine.WindowLib = WindowLib(engine);
+	engine.GUI = GUILibrary(engine);
 	engine.Events = Events(engine);
 	engine.Input = Input(engine.Creation);
 	//engine.Particles = Particles();

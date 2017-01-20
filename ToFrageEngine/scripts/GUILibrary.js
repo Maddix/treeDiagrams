@@ -1,19 +1,27 @@
 // /////////////
 // Window system
 
-function WindowLib(engine) {
+function GUILibrary(engine) {
 	var localContainer = {
 		version: "1.0",
-		frage: toFrage
 	};
+
+	// Create a container that will create its own events and add widgets events too,
+	// Widgets should also create their own events to add to the pool.
+
+	// Container -> Widget
+
+	// Make there be a way to select a widget and send it data.
+	// MouseOver/Click should search though everything to find a 'active' path to the widget.
+	// Call the 'active' event on everyone in the path. Then send it all the data.
 
 	localContainer.widget = function() {
 		return {
 			arrangePos: [0, 0], // 0 to 1
-			arrangeShape: [1, 1], // 0 to 1
-			//isMouseOver: function(mousePosition) {
-			//	return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.shape, 0);
-			//}
+			arrangeArea: [1, 1], // 0 to 1
+			isMouseOver: function(mousePosition) {
+				return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.area, 0);
+			}
 		};
 	};
 
@@ -47,7 +55,7 @@ function WindowLib(engine) {
 		};
 
 		//local.isMouseOver = function(mousePosition) {
-		//	return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.shape, 0);
+		//	return localContainer.frage.Math.checkWithinBounds(mousePosition, this.pos, this.area, 0);
 		//};
 
 		return local;
@@ -66,14 +74,14 @@ function WindowLib(engine) {
 			var withinBounds = localContainer.frage.Math.checkWithinBounds;
 			this.resizeBorders = [];
 			if (this.isMouseOver(mousePos)) {
-				// left - pos, [offset, shape[1]]
-				if (withinBounds(mousePos, this.pos, [this.resizeOffset, this.shape[1]], 0)) this.resizeBorders.push(1);
-				// top - pos, [shape[0], offset]
-				if (withinBounds(mousePos, this.pos, [this.shape[0], this.resizeOffset], 0)) this.resizeBorders.push(2);
-				// right - [pos[0] + (shape[0] - offset), pos[1]], [offset, shape[1]]
-				if (withinBounds(mousePos, [this.pos[0] + (this.shape[0] - this.resizeOffset), this.pos[1]], [this.resizeOffset, this.shape[1]], 0)) this.resizeBorders.push(3);
-				// bottom - [pos[0] + (shape[1] - offset), pos[0]], [shape[0], offset]
-				if (withinBounds(mousePos, [this.pos[0], this.pos[1] + (this.shape[1] - this.resizeOffset)], [this.shape[0], this.resizeOffset], 0)) this.resizeBorders.push(4);
+				// left - pos, [offset, area[1]]
+				if (withinBounds(mousePos, this.pos, [this.resizeOffset, this.area[1]], 0)) this.resizeBorders.push(1);
+				// top - pos, [area[0], offset]
+				if (withinBounds(mousePos, this.pos, [this.area[0], this.resizeOffset], 0)) this.resizeBorders.push(2);
+				// right - [pos[0] + (area[0] - offset), pos[1]], [offset, area[1]]
+				if (withinBounds(mousePos, [this.pos[0] + (this.area[0] - this.resizeOffset), this.pos[1]], [this.resizeOffset, this.area[1]], 0)) this.resizeBorders.push(3);
+				// bottom - [pos[0] + (area[1] - offset), pos[0]], [area[0], offset]
+				if (withinBounds(mousePos, [this.pos[0], this.pos[1] + (this.area[1] - this.resizeOffset)], [this.area[0], this.resizeOffset], 0)) this.resizeBorders.push(4);
 			}
 			if (this.resizeBorders.length) {
 				this.beingResized = true;
@@ -93,18 +101,18 @@ function WindowLib(engine) {
 				for (var index=0; index < this.resizeBorders.length; index++) {
 					var side = this.resizeBorders[index];
 					if (side == 1) { // left
-						this.shape[0] = this.pos[0] + this.shape[0] - mousePos[0];
+						this.area[0] = this.pos[0] + this.area[0] - mousePos[0];
 						this.pos[0] = mousePos[0];
 					}
 					if (side == 2) { // top
-						this.shape[1] = this.pos[1] + this.shape[1] - mousePos[1];
+						this.area[1] = this.pos[1] + this.area[1] - mousePos[1];
 						this.pos[1] = mousePos[1];
 					}
 					if (side == 3) { // right
-						this.shape[0] = mousePos[0] - this.pos[0];
+						this.area[0] = mousePos[0] - this.pos[0];
 					}
 					if (side == 4) { // bottom
-						this.shape[1] = mousePos[1] - this.pos[1];
+						this.area[1] = mousePos[1] - this.pos[1];
 					}
 				}
 				return true;
@@ -117,14 +125,14 @@ function WindowLib(engine) {
 	localContainer.container = function(config) {
 		var local =  engine.Creation.compose(engine.Creation.orderedDictionary(), localContainer.widget(), {
 			pos: [0, 0],
-			shape: [0, 0],
+			area: [100, 100],
 			arrangePos: [.5, .5],
-			arrangeShape: [.5, .5],
+			arrangeArea: [.5, .5],
 			context: undefined,
 			validate: function(object) {
 				if (object.setup
 					&& object.arrangePos
-					&& object.arrangeShape) return true;
+					&& object.arrangeArea) return true;
 			},
 			setup: function(context) {
 				this.context = context;
@@ -143,12 +151,12 @@ function WindowLib(engine) {
 				// Arrange children - In this case arrange free
 				this.iterateOverObjects(function(object) {
 					object.pos = [
-						local.pos[0] + (local.shape[0] * object.arrangePos[0]),
-						local.pos[1] + (local.shape[1] * object.arrangePos[1])
+						local.pos[0] + (local.area[0] * object.arrangePos[0]),
+						local.pos[1] + (local.area[1] * object.arrangePos[1])
 					];
-					object.shape = [
-						local.shape[0] * object.arrangeShape[0],
-						local.shape[1] * object.arrangeShape[1],
+					object.area = [
+						local.area[0] * object.arrangeArea[0],
+						local.area[1] * object.arrangeArea[1],
 					];
 					object.updateLogic(frame);
 				});
@@ -164,13 +172,9 @@ function WindowLib(engine) {
 	};
 
 	localContainer.square = function(config) {
-		var local = this.frage.Base.extend(this.widget());
-		this.frage.Base.extend(this.frage.Graphics.rectangle(config), local);
-		local.updateLogic = function(frame) {
-			//console.log(this.arrangePos);
-		};
-
-		return local;
+		return engine.Creation.compose(this.widget(), engine.Graphics.rectangle(), {
+			updateLogic: function(frame) { }
+		}, config);
 	};
 
 	localContainer.text = function(config, fontWidth) {
@@ -192,6 +196,18 @@ function WindowLib(engine) {
 
 		return local;
 	};
+
+	localContainer.line = function(config) {
+		return engine.Creation.compose(this.widget(), engine.Graphics.line(), {
+			updateLogic: function(frame) { }
+		}, config);
+	}
+
+	localContainer.lines = function(config) {
+		return engine.Creation.compose(this.widget(), engine.Graphics.lines(), {
+			updateLogic: function(frame) { }
+		}, config);
+	}
 
 	return localContainer;
 };

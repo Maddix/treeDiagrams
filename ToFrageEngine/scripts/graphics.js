@@ -385,7 +385,7 @@ function Graphics(creation) {
 	//ldp Defines common things in shapes.
 	localContainer.shape = function(config) {
 		return creation.compose({
-			area:[100, 100],
+			shape:[100, 100],
 			color:"white" // Should it be black?
 		}, localContainer.drawable(), config);
 	};
@@ -412,13 +412,15 @@ function Graphics(creation) {
 	localContainer.rectangle = function(config) {
 		return creation.compose({
 			superName: "rectangle",
-			includeBorder: true,
 			updateGraphics: function() {
 				this.context.beginPath();
+				this.context.shadowBlur = 20;
+				this.context.shadowColor = "black";
 				this.context.rect(this.pos[0], this.pos[1], this.area[0], this.area[1]);
 				this.context.globalAlpha = this.alpha;
 				this.context.fillStyle = this.color;
 				this.context.fill();
+				this.context.shadowBlur = 0;
 			}
 		}, localContainer.shape(), config);
 	};
@@ -464,62 +466,48 @@ function Graphics(creation) {
 		return local;
 	};
 
-	//ldp.p object
-	//ldp.r object
-	//ldp Draws a line.
+
+	// Draws a line.
 	localContainer.line = function(config) {
-		var local = {
-			style: "round",
-			lineWidth: 1
-		};
-		//ldp.e
-		Base(this.shape(config), local);
-
-		//ldp Draw the line.
-		local.updateGraphics = function() {
-			this.context.globalAlpha = this.alpha;
-			this.context.beginPath(); // Needed. Major lag if removed.
-			this.context.moveTo(this.pos[0], this.pos[1]);
-			this.context.lineTo(this.pos[0] + this.area[0], this.pos[1] + this.area[1]);
-			this.context.closePath(); // ? Not so sure if needed.
-			this.context.lineJoin = this.style;
-			this.context.lineWidth = this.lineWidth;
-			this.context.strokeStyle = this.color;
-			this.context.stroke();
-		};
-		return local;
-	};
-
-	//ldp.p object
-	//ldp.r object
-	//ldp Draws multiple lines.
-	localContainer.lines = function(config) {
-		var local = {
+		return creation.compose(this.shape(), {
 			style: "round",
 			lineWidth: 1,
-			area: [] // Holds lists of points, each new list is a new line -> [[startX,startY, x,y, ..], [startX,startY, x,y], ..]
-		};
-		//ldp.e
-		Base(this.area(config), local);
-
-		//ldp Draw all the lines.
-		local.updateGraphics = function() {
-			this.context.globalAlpha = this.alpha;
-			this.context.beginPath();
-			for (var lineIndex=0; lineIndex < this.area.length; lineIndex++) {
-				for (var pointIndex=0; pointIndex < this.area[lineIndex].length; pointIndex+=2) {
-					var line = this.area[lineIndex];
-					if (pointIndex === 0) this.context.moveTo(this.pos[0] + line[pointIndex], this.pos[1] + line[pointIndex+1]);
-					else this.context.lineTo(this.pos[0] + line[pointIndex], this.pos[1] + line[pointIndex+1]);
-				}
+			updateGraphics: function() {
+				this.context.globalAlpha = this.alpha;
+				this.context.beginPath(); // Needed. Major lag if removed.
+				this.context.moveTo(this.pos[0], this.pos[1]);
+				this.context.lineTo(this.pos[0] + this.area[0], this.pos[1] + this.area[1]);
+				this.context.closePath(); // ? Not so sure if needed.
+				this.context.lineJoin = this.style;
+				this.context.lineWidth = this.lineWidth;
+				this.context.strokeStyle = this.color;
+				this.context.stroke();
 			}
-			this.context.lineJoin = this.style;
-			this.context.lineWidth = this.lineWidth;
-			this.context.strokeStyle = this.color;
-			this.context.stroke();
+		}, config);
+	};
 
-		};
-		return local;
+	// Draws multiple lines.
+	localContainer.lines = function(config) {
+		return creation.compose(this.shape(), {
+			style: "round",
+			lineWidth: 1,
+			shape: [], // Holds lists of points, each new list is a new line -> [[startX,startY, x,y, ..], [startX,startY, x,y], ..]
+			updateGraphics: function() {
+				this.context.globalAlpha = this.alpha;
+				this.context.beginPath();
+				for (var lineIndex=0; lineIndex < this.shape.length; lineIndex++) {
+					for (var pointIndex=0; pointIndex < this.shape[lineIndex].length; pointIndex+=2) {
+						var line = this.shape[lineIndex];
+						if (pointIndex === 0) this.context.moveTo(this.pos[0] + line[pointIndex], this.pos[1] + line[pointIndex+1]);
+						else this.context.lineTo(this.pos[0] + line[pointIndex], this.pos[1] + line[pointIndex+1]);
+					}
+				}
+				this.context.lineJoin = this.style;
+				this.context.lineWidth = this.lineWidth;
+				this.context.strokeStyle = this.color;
+				this.context.stroke();
+			}
+		}, config);
 	};
 
 	return localContainer;
