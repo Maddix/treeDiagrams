@@ -1,76 +1,60 @@
 
 function Creation() {
-	var localContainer = {
-	};
-
-	//ldp.r boolean
-	//ldp Takes two items and compares their type.
-	localContainer.isType = function(one, two) {
-		return Object.prototype.toString.call(one) === Object.prototype.toString.call(two);
-	};
+	var localContainer = {};
 
 	localContainer.getType = function(one) {
 		return Object.prototype.toString.call(one);
+	};
+
+	localContainer.ARRAYTYPE = localContainer.getType([]);
+	localContainer.OBJECTTYPE = localContainer.getType({});
+
+	localContainer.isType = function(one, two) {
+		return localContainer.getType(one) === localContainer.getType(two);
 	};
 
 	localContainer.invert = function(object) {
 		var newObject = {};
 		for (var key in object) { newObject[object[key]] = key; }
 		return newObject;
-	};
+	}
 
-	//ldp.p list?object
-	//ldp.r list?object
-	//ldp Deep copies a object or a list.
-	localContainer.deepCopy = function(item) {
-		var itemProto = localContainer.getType(item);
-		var newItem = item;
-		var getItem = function(child) { return localContainer.deepCopy(child); };
-		if (localContainer.isType(itemProto, [])) {
-			newItem = [];
-			for (var itemIndex=0, len=item.length; itemIndex < len; itemIndex++) newItem.push(getItem(item[itemIndex]));
+	localContainer.clone = function(target) {
+		var getItem = function(child) { return _clone(child); },
+			array = this.getType([]),
+			object = this.getType({});
+		function _clone(item) {
+			var proto = localContainer.getType(item),
+				newItem = proto === object ? {} : proto === array ? [] : item;
+			if (proto === array) for (var idx=0, len=item.length; idx<len; idx++) newItem.push(getItem(item[idx]));
+			else if (proto === object) for (var idx in item) newItem[idx] = getItem(item[idx]);
+			return newItem;
 		}
-		if (localContainer.isType(itemProto, {})) {
-			newItem = {};
-			for (var itemIndex in item) newItem[itemIndex] = getItem(item[itemIndex])
-		}
-		return newItem;
-	};
+		return _clone(target);
+	}
 
-	// Reserved keywords are objectName and function.super
-	localContainer.extend = function(from, to) {
-		if (from && to) for (var key in from) {
-			var previousItem = to[key];
-			if (previousItem && this.isType(previousItem, {})) this.extend(from[key], previousItem);
-			else if (key != "superName") to[key] = from[key];
-
-			// Keep track of older functions nameIndex bind them from 'from' to 'to'
-			if (previousItem && this.isType(previousItem, Function) && this.isType(from[key], Function)) {
-				if (!to[key].super) to[key].super = {};
-				to[key].super[to.superName] = previousItem.bind(to);
-			}
+	localContainer.extend = function(to, from) {
+		if (to && from) for (var key in from) {
+			var prev = to[key];
+			if (prev && this.getType(prev) == this.OBJECTTYPE) this.extend(from[key], prev[key]);
+			else to[key] = from[key];
 		}
 		return to;
-	};
+	}
 
 	localContainer.compose = function() {
 		var args = Array.prototype.slice.call(arguments);
-		// Exit if we don't have enough arguments
-		if (args.length < 2) {
-			console.error("Two or more arguments are required. Arguments:", arguments);
-			return false;
-		}
+		if (args.length < 2) throw TypeError("two or more arguments are required when calling function ", arguments.callee.name);
 
-		var base = args.splice(0, 1)[0];
+		var base = args.shift();
 		args.map(function(item) {
-			localContainer.extend(item ? item : {}, base);
+			localContainer.extend(base, item);
 		});
 		return base;
 	}
 
 	localContainer.orderedDictionary = function(config) {
-		return this.compose({
-			superName: "orderedDictionary",
+		return this.extend({
 			objects: {},
 			objectNames: [],
 			validate: function(object) {
@@ -110,7 +94,9 @@ function Creation() {
 					if (func(this.objects[name], name)) break;
 				}
 			}
-		}, config);
+			},
+			config
+		);
 	};
 
 	return localContainer;
