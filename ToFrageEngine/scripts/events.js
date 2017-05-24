@@ -3,129 +3,9 @@ function Events(creation) {
 		version: "1"
 	};
 
-	// localContainer.actionEvent_old = function(config) {
-	// 	return creation.compose(
-	// 		creation.orderedDictionary(),
-	// 		{
-	// 			triggers: [], // Key codes or mouse codes
-	// 			removeOnSuccess: [], // remove instead of delete? Which word is better?
-	// 			includeIfTriggered: [], // Any other triggers and their data that you may want.
-	// 			triggered: false, // State of the trigger at start.
-	// 			triggerOn: true, // Trigger if the data is there, otherwise trigger when the data is wrong/missing/false.
-	// 			removeFromInput: function(input) {
-	// 				for (var index=0; index < this.removeOnSuccess.length; index++) {
-	// 					delete input[this.removeOnSuccess[index]];
-	// 				}
-	// 			},
-	// 			updateEventCheck: function (input) { return true; },
-	// 			updateEvent: function(input) {
-	// 				if (this.updateEventCheck(input)) return input; // Bail if we don't pass the check.
-	//
-	// 				if (!this.triggered) var passToCallback = {};
-	// 				for (var index=0; index < this.triggers.length; index++) {
-	// 					var trigger = this.triggers[index];
-	// 					if (this.triggerOn == !input[trigger]) {
-	// 						this.triggered = false;
-	// 						return input;
-	// 					} else if (!this.triggered) {
-	// 						passToCallback[trigger] = input[trigger];
-	// 					}
-	// 				}
-	//
-	// 				if (!this.triggered) {
-	// 					this.triggered = true;
-	//
-	// 					// Gather any other data from input
-	// 					for (var index=0; index < this.includeIfTriggered.length; index++) {
-	// 						var include = this.includeIfTriggered[index];
-	// 						passToCallback[include] = input[include];
-	// 					}
-	//
-	// 					// Call callbacks.
-	// 					this.iterateOverObjects(function(callback) {
-	// 						callback(passToCallback);
-	// 					});
-	//
-	// 					this.removeFromInput(input);
-	// 				}
-	//
-	// 				return input;
-	// 			}
-	// 		},
-	// 		config
-	// 	);
-	// };
-	//
-	// localContainer.stateEvent_old = function(config) {
-	// 	return creation.compose(creation.orderedDictionary(), {
-	// 		triggers: [], // ["shift", "control", "w"] // should be turned into keycodes - not human readable.
-	// 		removeOnSuccess: [], // ["w"] // Could be used for evil.. (╯°□°）╯︵ ┻━┻ Much power, great responsibility.
-	// 		// triggerOn?
-	// 		updateEventCheck: function (input) { return true; },
-	// 		updateEvent: function(input) {
-	// 			if (this.updateEventCheck(input)) return input; // Bail if we don't pass the check.
-	//
-	// 			var passToCallback = {};
-	// 			// Check if all the required keys are active, bail out otherwise
-	// 			for (var index=0; index < this.triggers.length; index++) {
-	// 				var trigger = this.triggers[index];
-	// 				if (!input[trigger]) return input;
-	// 				else passToCallback[trigger] = input[trigger];
-	// 			}
-	//
-	// 			// Call callbacks.
-	// 			this.iterateOverObjects(function(callback) {
-	// 				callback(passToCallback);
-	// 			});
-	//
-	// 			// Delete keys
-	// 			for (var index=0; index < this.removeOnSuccess.length; index++) {
-	// 				delete input[this.removeOnSuccess[index]];
-	// 			}
-	//
-	// 			return input;
-	// 		}
-	// 	}, config);
-	// };
-	//
-	// localContainer.getEventContext_old = function(config) {
-	// 	return creation.compose(
-	// 		creation.orderedDictionary(),
-	// 		{
-	// 			onHold: false,
-	// 			validate: function(object) {
-	// 				if (object.updateEvent) return true;
-	// 			},
-	// 			suspend: function() {
-	// 				this.onHold = true;
-	// 			},
-	// 			resume: function(name) {
-	// 				this.onHold = false;
-	// 			},
-	// 			getState: function() {
-	// 				return this.onHold;
-	// 			},
-	// 			updateEvent: function(input) {
-	// 				if (!this.onHold && this.updateEventCheck(input)) {
-	// 					var remaining = input;
-	// 					this.iterateOverObjects(function(object, name) {
-	// 						if (remaining) remaining = object.updateEvent(input);
-	// 						else return true;
-	// 					});
-	// 					return remaining;
-	// 				}
-	// 				return input;
-	// 			}
-	// 		},
-	// 		config
-	// 	);
-	// };
-
-	localContainer.singleEvent = function(config) {
+	localContainer.lateEvent = function(config) {
 		return creation.compose(
 			{
-				eatOnSuccess: false,
-				triggerAfter: false, // Trigger once the trigger appears, reset after its gone.
 				tripped: false,
 				trigger: null, // The triggering data
 				notifyList: [],
@@ -146,9 +26,6 @@ function Events(creation) {
 				updateList: function() {
 					this.notifyList.forEach(function(item) { item(); });
 				},
-				eatData: function(data) { // If called then the index can't be -1
-					data.splice(data.indexOf(this.trigger), 1);
-				},
 				findMatch: function(data) {
 					for (var i=0, len=data.length; i<len; i++) {
 						if (this.trigger === data[i]) {
@@ -156,28 +33,42 @@ function Events(creation) {
 						}
 					}
 				},
-				update: function(data) { // -> Expects a list of data
+				// Calls updateList after the triggering data is exempt
+				update: function(data) { // Expects a list of data
 					var found = this.findMatch(data);
-					if (!this.triggerAfter) {
-						if (found && !this.tripped) {
-							this.updateList();
-							if (this.eatOnSuccess) this.eatData(data);
-							this.tripped = !this.triggerAfter;
-						} else if (!found){
-							this.tripped = this.triggerAfter;
-						}
-					} else {
-						if (!found && this.tripped) {
-							this.updateList();
-							if (this.eatOnSuccess) this.eatData(data);
-							this.tripped = !this.triggerAfter;
-						} else if (found) {
-							this.tripped = this.triggerAfter;
-						}
+					if (!found && this.tripped) {
+						this.updateList();
+						this.tripped = false;
+					} else if (found) {
+						this.tripped = true;
 					}
 					return data;
 				}
+			},
+			config
+		);
+	}
 
+	localContainer.event = function(config) {
+		return creation.compose(
+			this.lateEvent(),
+			{
+				eatOnSuccess: false,
+				eatData: function(data) { // If called then the index can't be -1
+					data.splice(data.indexOf(this.trigger), 1);
+				},
+				// Calls updateList as soon as the trigger is tripped
+				update: function(data) { // Expects a list of data
+					var found = this.findMatch(data);
+					if (found && !this.tripped) {
+						this.updateList();
+						if (this.eatOnSuccess) this.eatData(data);
+						this.tripped = true;
+					} else if (!found){
+						this.tripped = false;
+					}
+					return data;
+				}
 			},
 			config
 		);
@@ -185,18 +76,20 @@ function Events(creation) {
 
 	localContainer.complexEvent = function(config) {
 		return creation.compose(
-			this.singleEvent(),
+			this.event(),
 			{
 				// Not sure how fast this trickery is; may need to move back to something simple.
 				// trigger: ["data1", 32, "data3", "four"]
 				// Will only trigger if everything in 'trigger' is in data somewhere.
 				findMatch: function(data) {
-					return !(this.trigger.length - this.trigger.filter(function(trigger) {
-						return data.indexOf(trigger) != -1;
+					return !(this.trigger.length - this.trigger.filter(function(item) {
+						return data.indexOf(item) != -1;
 					}).length);
 				},
 				eatData: function(data) {
-					
+					this.trigger.forEach(function(item) {
+						data.splice(data.indexOf(item), 1);
+					});
 				}
 			},
 			config
