@@ -5,23 +5,38 @@ function GUI(engine) {
 	var localContainer = {};
 
 	localContainer.grid = function(config) {
-		var children = engine.Creation.orderedDictionary();
 		return engine.Creation.compose(
 			{
 				boundPos: [0, 0], // 0,0 (x, y - ie position on the screen)
 				boundArea: [100, 100], // 720x480 (Width, height)
-				fillArea: [1, 1], // Should it fill its space or should it be smaller than it?
-				position: "center", // Should it fill the center
-
-				children: children,
-				add: children.add,
-				get: children.get,
-				remove: children.remove,
-				changePosition: children.changePosition,
-				iterateOverObjects: children.iterateOverObjects,
-
+				arrangeType: "row", // column, row
+				children: [],
+				arrangeFuncs: {
+					row: function(total, area) {
+						return engine.Creation.genArray(total, function(_, idx) {
+							return [area[0]*idx, area[1]];
+						});
+					},
+					column: function(total, area) {
+						return engine.Creation.genArray(total, function(_, idx) {
+							return [area[0], area[1]*idx];
+						});
+					}
+				},
+				add: function(item) {
+					this.children.push(item);
+					return this;
+				},
+				remove: function(item) {
+					var found = this.children.indexOf(item);
+					if (found) return this.children.splice(found, 1);
+				},
 				positionChildren: function() {
-					
+					var total = this.children.length,
+						squared = [boundArea[0]/total, boundArea[1]/total]
+
+
+
 				},
 
 				update: function() {

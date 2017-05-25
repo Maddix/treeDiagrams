@@ -53,6 +53,10 @@ function Creation() {
 		return base;
 	}
 
+	localContainer.genArray(total, func) {
+		return Array.apply(null, Array(total)).map(func);
+	}
+
 	localContainer.orderedDictionary = function(config) {
 		return this.extend({
 			objects: {},
