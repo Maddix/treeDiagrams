@@ -20,21 +20,6 @@ function Util(creation) {
 				imageObjects[imageName] = image;
 			}
 		},
-
-		getLogicController: function(config) {
-			return creation.compose(creation.orderedDictionary(), {
-				supername: "logicController",
-				validate: function(object) {
-					return !!object.updateLogic;
-				},
-				update: function(frame) {
-					this.iterateOverObjects(function(object) {
-						object.updateLogic(frame);
-					});
-				}
-			}, config);
-		},
-
 		loop: function(config) {
 			var object = creation.compose({
 				superName: "loop",

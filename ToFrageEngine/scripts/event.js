@@ -1,7 +1,5 @@
-function Events(creation) {
-	var localContainer = {
-		version: "1"
-	};
+function Event(creation) {
+	var localContainer = {};
 
 	localContainer.lateEvent = function(config) {
 		return creation.compose(
@@ -15,8 +13,8 @@ function Events(creation) {
 					return isFunc;
 				},
 				remove: function(item) {
-					var found = this.notifyList.indexOf(item);
-					if (found != -1) return this.notifyList.splice(found, 1);
+					if (this.notifyList.includes(item))
+						return this.notifyList.splice(this.notifyList.indexOf(item), 1);
 				},
 				clean: function() {
 					this.notifyList = this.notifyList.filter(function(item) {
@@ -27,11 +25,7 @@ function Events(creation) {
 					this.notifyList.forEach(function(item) { item(); });
 				},
 				findMatch: function(data) {
-					for (var i=0, len=data.length; i<len; i++) {
-						if (this.trigger === data[i]) {
-							return true;
-						}
-					}
+					return data.includes(this.trigger);
 				},
 				// Calls updateList after the triggering data is exempt
 				update: function(data) { // Expects a list of data
@@ -82,9 +76,7 @@ function Events(creation) {
 				// trigger: ["data1", 32, "data3", "four"]
 				// Will only trigger if everything in 'trigger' is in data somewhere.
 				findMatch: function(data) {
-					return !(this.trigger.length - this.trigger.filter(function(item) {
-						return data.indexOf(item) != -1;
-					}).length);
+					return !(this.trigger.length - this.trigger.filter(data.includes).length);
 				},
 				eatData: function(data) {
 					this.trigger.forEach(function(item) {

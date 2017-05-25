@@ -93,6 +93,10 @@ function Creation() {
 					var name = this.objectNames[nameIndex];
 					if (func(this.objects[name], name)) break;
 				}
+			},
+			list: function() { // Not super safe IMO..
+				var self = this;
+				return objectNames.map(function(name) { return self.objects[name]; })
 			}
 			},
 			config

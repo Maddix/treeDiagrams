@@ -1,4 +1,4 @@
-function Graphics(creation) {
+function Graphic(creation) {
 	var localContainer = {
 		version: "1"
 	};

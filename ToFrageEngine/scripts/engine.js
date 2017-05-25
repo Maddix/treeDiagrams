@@ -11,9 +11,9 @@ function Engine() {
 	engine.Math = GameMath()
 	engine.Creation = Creation();
 	engine.Util = Util(engine.Creation);
-	engine.Graphics = Graphics(engine.Creation);
-	engine.GUI = GUILibrary(engine);
-	engine.Events = Events(engine);
+	engine.Graphic = Graphic(engine.Creation);
+	engine.GUI = GUI(engine);
+	engine.Event = Event(engine.Creation);
 	engine.Input = Input(engine.Creation);
 	//engine.Particles = Particles();
 	return engine;

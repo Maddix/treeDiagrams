@@ -1,6 +1,18 @@
 // This uses Jquery 2.0.3 and Jquary-mousewheel(https://github.com/brandonaaron/jquery-mousewheel)
 // Note for mousedown/up, event.which ~ 1 for left, 2 for middle, 3 for right
 
+/*
+function alphabet(start, end) {
+	var first = start, //start.charCodeAt(0),
+	    last = end, //end.charCodeAt(0),
+	    string = "";
+	for (var i=first; i<last; i++) {
+	    string += String.fromCharCode(i);
+	}
+	return string;
+}
+*/
+
 function Input(creation) {
 	var localContainer = {
 		version: "1.0",
@@ -33,7 +45,7 @@ function Input(creation) {
 	localContainer.reverseKeyMap = creation.invert(localContainer.defaultKeyMap);
 	localContainer.reverseShiftKeyMap = creation.invert(localContainer.defaultShiftKeyMap);
 
-	localContainer.getKey = function(keyName, shift) {
+	localContainer.getKey = function(keyNumber, shift) {
 		var isString = creation.isType(keyName, "");
 		keyName = isString ? keyName.toLowerCase() : keyName;
 
@@ -47,122 +59,123 @@ function Input(creation) {
 	}
 
 	localContainer.getInputManager = function(config) {
-		return creation.compose({
-			superName: "inputManager",
-			rawInput: {},
-			rawInputOrder: [],
-			addInput: function(input, value) {
-				this.rawInput[input] = value;
-				if (this.rawInputOrder.indexOf(input) == -1) this.rawInputOrder.push(input);
+		return creation.compose(
+			{
+				inputList: [], // ["w", "s", "d"]
+				mouseData: {}, // mouseMove:[], wheel:[]
+				addInput: function(input, value) {
+					if (!this.inputList.includes(input)) this.inputList.push(input);
+				},
+				removeInput: function(input) {
+					var index = this.inputList.indexOf(input);
+					if (index != -1) this.inputList.splice(index, 1);
+				},
+				getInput: function() {
+					var data = creation.clone([this.inputList, this.mouseData]);
+					this.mouseData.mouse = [];
+					this.mouseData.wheel = [];
+					return data;
+				}
 			},
-			removeInput: function(input) {
-				delete this.rawInput[input];
-				var index = this.rawInputOrder.indexOf(input);
-				if (index != -1) this.rawInputOrder.splice(index, 1);
-			},
-			getInput: function() {
-				return {
-					input: creation.deepCopy(this.rawInput),
-					inputOrder: creation.deepCopy(this.rawInputOrder)
-				};
-			}
-		}, config);
+			config
+		);
 	};
 
 	// Doesn't auth element.. :/ Needs reworking.
 	localContainer.getListenerManager = function(config) {
-		return creation.compose({
-			superName: "listenerManager",
-			listeners: [],
-			addListenerTo: function(element, listenerName, callback) {
-				$(element).on(listenerName, callback);
-				this.listeners.push(listenerName);
-			},
-			removeListenerFrom: function(element, listenerName) {
-				var index = this.listeners.indexOf(listenerName);
-				if (index != -1) {
-					$(element).off(listenerName);
-					this.listeners.splice(index, 1);
-					return true;
+		return creation.compose(
+			{
+				listeners: [],
+				addListenerTo: function(element, listenerName, callback) {
+					$(element).on(listenerName, callback);
+					this.listeners.push(listenerName);
+				},
+				removeListenerFrom: function(element, listenerName) {
+					var index = this.listeners.indexOf(listenerName);
+					if (index != -1) {
+						$(element).off(listenerName);
+						this.listeners.splice(index, 1);
+						return true;
+					}
+				},
+				// May explode. :o
+				removeListenersFrom: function(element) {
+					for (var index=0; index > this.listeners; index++) {
+						this.removeListener(element, this.listeners[index]);
+					}
 				}
 			},
-			// May explode. :o
-			removeListenersFrom: function(element) {
-				for (var index=0; index > this.listeners; index++) {
-					this.removeListener(element, this.listeners[index]);
-				}
-			}
-		}, config);
+			config
+		);
 	}
 
 	localContainer.getInput = function(config) {
-		var local = creation.compose({
-			superName: "input",
-			keyElement: "body",
-			mouseElement: "canvas",
-			// Only used for keys
-			blacklist: {"Ctrl-R":[17, 82], "F5":[116], "Ctrl-Shift-C":[17, 16, 67]}, // {"description":[key, ..], ..}
-			notMatchingBlacklist: function() {
-				for (var keyComboName in this.blacklist) {
-					var keyCombo = this.blacklist[keyComboName];
-					var matchingCombo = true;
-					for (var index=0; index < keyCombo.length; index++) {
-						if (this.rawInput[keyCombo[index]] == undefined) matchingCombo = false;
+		return creation.compose(
+			localContainer.getInputManager(),
+			localContainer.getListenerManager(),
+			{
+				keyElement: "body",
+				mouseElement: "canvas",
+				getScrollData: true,
+				// Only used for keys
+				blacklist: [[17, 82], [17, 16, 67], [16, 17, 65]], //Ctrl-R, Ctrl-Shift-C
+				blackListed: function(blacklist, data) {
+					return blacklist.map(function(combo) {
+						return !combo.map(function(key) { return data.includes(key); }).includes(false);
+					}).includes(true);
+				},
+				addListeners: function() {
+					var self = this;
+					this.addListenerTo(this.keyElement, "keydown", function(jqueryKeyEvent) {
+						self.addInput(jqueryKeyEvent.which, true);
+						if (self.blackListed(self.blacklist, self.inputList)) return false;
+					});
+
+					this.addListenerTo(this.keyElement, "keyup", function(jqueryKeyEvent) {
+						self.removeInput(jqueryKeyEvent.which);
+						return false;
+					});
+
+					this.addListenerTo(this.mouseElement, "mousemove", function(jqueryMouseEvent) {
+						self.removeInput("mouseMove");
+						self.mouseData.mouse = [
+							jqueryMouseEvent.pageX - $(self.mouseElement).offset().left,
+							jqueryMouseEvent.pageY - $(self.mouseElement).offset().top
+						];
+					});
+
+					// TODO: Is the for-loop too slow?
+					if (this.getScrollData) {
+						this.addListenerTo(this.mouseElement, "mousewheel", function(jqueryMouseEvent) {
+							var delta = [jqueryMouseEvent.deltaX, jqueryMouseEvent.deltaY];
+							//console.log("MouseWheel Delta: ", delta);
+							// normalize the scroll delta
+							for (var index=0, len=delta.length; index < len; index++) {
+								if (delta[index] > 1) delta[index] = 1;
+								else if (delta[index] < -1) delta[index] = -1;
+							}
+
+							self.mouseData.wheel = delta; // Hacks but it works :/
+							return false; // returning false prevents the default action (page scroll)
+						});
 					}
-					if (matchingCombo) return false;
-				}
-				return true;
-			},
-			addListeners: function() {
-				this.addListenerTo(this.keyElement, "keydown", function(jqueryKeyEvent) {
-					local.addInput(jqueryKeyEvent.which, true);
-					if (local.notMatchingBlacklist()) return false;
-				});
 
-				this.addListenerTo(this.keyElement, "keyup", function(jqueryKeyEvent) {
-					local.removeInput(jqueryKeyEvent.which);
-					return false;
-				});
+					// Note for mousedown/up, event.which ~ 1 for left, 2 for middle, 3 for right
+					this.addListenerTo(this.mouseElement, "mousedown", function(jqueryKeyEvent) {
+						self.addInput(jqueryKeyEvent.which, true);
+						jqueryKeyEvent.stopPropagation();
+						jqueryKeyEvent.preventDefault();
+					});
 
-				this.addListenerTo(this.mouseElement, "mousemove", function(jqueryMouseEvent) {
-					local.removeInput("mouseMove");
-					local.addInput("mouseMove", [
-						jqueryMouseEvent.pageX - $(local.mouseElement).offset().left,
-						jqueryMouseEvent.pageY - $(local.mouseElement).offset().top
-					]);
-				});
-
-				// TODO: Is the for-loop too slow?
-				if (this.getScrollData) {
-					this.addListenerTo(this.mouseElement, "mousewheel", function(jqueryMouseEvent) {
-						var delta = [jqueryMouseEvent.deltaX, jqueryMouseEvent.deltaY];
-						// normalize the scroll delta
-						for (var index=0, len=delta.length; index < len; index++) {
-							if (delta[index] > 1) delta[index] = 1;
-							else if (delta[index] < -1) delta[index] = -1;
-						}
-						local.removeInput("mouseWheel");
-						local.addInput("mouseWheel", delta);
-						return false; // returning false prevents the default action (page scroll)
+					this.addListenerTo(this.mouseElement, "mouseup", function(jqueryKeyEvent) {
+						self.removeInput(jqueryKeyEvent.which);
+						jqueryKeyEvent.stopPropagation();
+						jqueryKeyEvent.preventDefault();
 					});
 				}
-
-				// Note for mousedown/up, event.which ~ 1 for left, 2 for middle, 3 for right
-				this.addListenerTo(this.mouseElement, "mousedown", function(jqueryKeyEvent) {
-					local.addInput(jqueryKeyEvent.which, true);
-					jqueryKeyEvent.stopPropagation();
-					jqueryKeyEvent.preventDefault();
-				});
-
-				this.addListenerTo(this.mouseElement, "mouseup", function(jqueryKeyEvent) {
-					local.removeInput(jqueryKeyEvent.which);
-					jqueryKeyEvent.stopPropagation();
-					jqueryKeyEvent.preventDefault();
-				});
-			}
-		}, localContainer.getListenerManager(), localContainer.getInputManager(), config);
-
-		return local;
+			},
+			config
+		);
 	};
 
 	return localContainer;

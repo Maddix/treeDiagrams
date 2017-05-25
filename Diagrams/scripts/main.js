@@ -1,57 +1,40 @@
-function setup() {
+function main(DATA) {
 	var engine = Engine();
 
 	// Create the layerController (AKA - Graphic controller)
-	var layerController = engine.Graphics.getLayerController({
+	var layerController = engine.Graphic.getLayerController({
 		area: [1024, 640],
 		container: document.getElementById("container")
 	});
 
-	// Create Logic controller
-	var logicController = engine.Util.getLogicController();
-
 	// Create all the layers we are going to use, order matters
-	layerController.add("background", engine.Graphics.getLayer());
-	layerController.add("draw", engine.Graphics.getLayer());
+	layerController.add("background", engine.Graphic.getLayer());
+	layerController.add("draw", engine.Graphic.getLayer());
 
 	// Create input and an eventContext to handle it.
 	var input = engine.Input.getInput();
 	input.addListeners();
-	var inputEventContext = engine.Events.getEventContext();
+	var inputEventContext = null; //engine.Events.getEventContext();
 
 	// Data object
 	var DATA = {
 		layerController: layerController,
-		logicController: logicController,
 		screenArea: layerController.area,
 		input: input,
 		inputEventContext: inputEventContext,
-		mainLoop: undefined,
-		engine: engine,
+		mainLoop: null,
+		engine: engine
 	};
 
-	// Start main
-	main(DATA);
-}
-
-function main(DATA) {
-
 	// Create all the content
-	createContent(DATA);
-
-	//console.log(DATA.inputEventContext);
+	createContent(DATA); // content.js
 
 	// Make the loop
-	mainLoop = DATA.engine.Util.loop({func:function(frame) {
-		var keyInput = DATA.input.getInput()["input"];
-		DATA.inputEventContext.updateEvent(keyInput); 	// Get latest input
-		DATA.logicController.update(frame); 			// Update the logic
-		DATA.layerController.update(); 					// Update the graphics
-	}, fps:60, useRAF:true, modifier:1});
+	DATA.mainLoop = DATA.engine.Util.loop({func:function(frame) {
+		var keyInput = DATA.input.getInput();
+		//console.log("Object: ", keyInput);
+	}, fps:1, useRAF:true});
 
 	// Kick off the loop
-	mainLoop.start();
-
-	// Put a handle on the loop
-	DATA.mainLoop = mainLoop;
+	DATA.mainLoop.start();
 }
