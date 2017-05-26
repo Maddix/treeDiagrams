@@ -167,7 +167,7 @@ function Graphic(creation) {
 				pos: [0, 0],
 				alpha: 1,
 				context: null,
-				setup: function(context) {this.context = context;}
+				setup: function(context) { this.context = context; }
 			},
 			config);
 		// This is where you would put your drawing code. As this is an example I'm leaving it commented due to performance concerns.
@@ -359,7 +359,7 @@ function Graphic(creation) {
 		return creation.compose(
 			localContainer.drawable(),
 			{
-				shape:[100, 100],
+				area:[100, 100],
 				color:"white" // Should it be black?
 			},
 			config

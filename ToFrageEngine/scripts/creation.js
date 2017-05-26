@@ -53,7 +53,7 @@ function Creation() {
 		return base;
 	}
 
-	localContainer.genArray(total, func) {
+	localContainer.genArray = function(total, func) {
 		return Array.apply(null, Array(total)).map(func);
 	}
 

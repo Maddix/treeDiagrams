@@ -4,25 +4,12 @@
 function GUI(engine) {
 	var localContainer = {};
 
-	localContainer.grid = function(config) {
+	localContainer.container = function(config) {
 		return engine.Creation.compose(
 			{
-				boundPos: [0, 0], // 0,0 (x, y - ie position on the screen)
-				boundArea: [100, 100], // 720x480 (Width, height)
-				arrangeType: "row", // column, row
+				pos: [0, 0], // 0,0 (x, y - ie position on the screen)
+				area: [100, 100], // 720x480 (Width, height)
 				children: [],
-				arrangeFuncs: {
-					row: function(total, area) {
-						return engine.Creation.genArray(total, function(_, idx) {
-							return [area[0]*idx, area[1]];
-						});
-					},
-					column: function(total, area) {
-						return engine.Creation.genArray(total, function(_, idx) {
-							return [area[0], area[1]*idx];
-						});
-					}
-				},
 				add: function(item) {
 					this.children.push(item);
 					return this;
@@ -31,21 +18,98 @@ function GUI(engine) {
 					var found = this.children.indexOf(item);
 					if (found) return this.children.splice(found, 1);
 				},
-				positionChildren: function() {
-					var total = this.children.length,
-						squared = [boundArea[0]/total, boundArea[1]/total]
-
-
-
+				arrange: function() {
+					this.children.forEach(function(child) {
+						child.update(this.pos, this.area);
+					});
 				},
+				update: function(newPos, newArea) {
+					this.pos = newPos;
+					this.area = newArea;
+					this.arrange();
+				}
+			},
+			config
+		);
+	}
 
-				update: function() {
-
+	localContainer.containerRow = function(config) {
+		return engine.Creation.compose(
+			this.container(),
+			{
+				arrangeFunc: function(total, pos, area) {
+					return engine.Creation.genArray(total, function(_, idx) {
+						return [[pos[0] + (area[0]*idx), pos[1]], area];
+					});
 				},
+				arrange: function() {
+					var totalCells = this.children.length;
+					if (totalCells) {
+						var area = [this.area[0]/totalCells, this.area[1]],
+						calc = this.arrangeFunc(totalCells, this.pos, area);
+						this.children.forEach(function(child, idx) {
+							var data = calc[idx];
+							child.update(data[0], data[1]);
+						});
+					}
+				},
+				update: function(newPos, newArea) {
+					this.pos = newPos;
+					this.area = newArea;
+					this.arrange();
+				},
+			},
+			config
+		);
+	}
 
+	localContainer.widget = function(config) {
+		return engine.Creation.compose(
+			{
+				pos: [0, 0],
+				area: [0, 0],
+				graphic: null,
+				arrange: function() {
+					this.graphic.pos = this.pos;
+					this.graphic.area = this.area;
+					// console.log("Arrange Graphic: Pos: ", this.graphic.pos, " Area: ", this.graphic.area);
+				},
+				update: function(newPos, newArea) {
+					this.pos = newPos;
+					this.area = newArea;
+					this.arrange();
+				}
+			},
+			config
+		);
+	}
 
+	localContainer.widgetFit = function(config) {
+		return engine.Creation.compose(
+			this.widget(),
+			{
+				pad: [1, 1],
+				arrange: function() {
+					if (this.ratio) {
+						
+						this.graphic.pos = [
+							this
+						];
+						this.graphic.area = [
 
-			}
+						];
+					} else {
+						this.graphic.pos = [
+							this.pos[0] + this.pad[0],
+							this.pos[1] + this.pad[1]
+						];
+						this.graphic.area = [
+							this.area[0] - this.pad[0]*2,
+							this.area[1] - this.pad[1]*2
+						];
+					}
+				}
+			},
 			config
 		);
 	}

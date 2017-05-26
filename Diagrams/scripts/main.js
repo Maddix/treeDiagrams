@@ -1,4 +1,4 @@
-function main(DATA) {
+function main() {
 	var engine = Engine();
 
 	// Create the layerController (AKA - Graphic controller)
@@ -10,6 +10,8 @@ function main(DATA) {
 	// Create all the layers we are going to use, order matters
 	layerController.add("background", engine.Graphic.getLayer());
 	layerController.add("draw", engine.Graphic.getLayer());
+
+	console.log(layerController);
 
 	// Create input and an eventContext to handle it.
 	var input = engine.Input.getInput();
@@ -33,6 +35,7 @@ function main(DATA) {
 	DATA.mainLoop = DATA.engine.Util.loop({func:function(frame) {
 		var keyInput = DATA.input.getInput();
 		//console.log("Object: ", keyInput);
+		layerController.update();
 	}, fps:1, useRAF:true});
 
 	// Kick off the loop
