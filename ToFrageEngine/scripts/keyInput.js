@@ -71,9 +71,12 @@ function Input(creation) {
 					if (index != -1) this.inputList.splice(index, 1);
 				},
 				getInput: function() {
-					var data = creation.clone([this.inputList, this.mouseData]);
-					this.mouseData.mouse = [];
-					this.mouseData.wheel = [];
+					var data = creation.clone(this.inputList).concat(this.mouseData);
+					this.mouseData.wheel = "";
+					return data;
+				},
+				getMouse: function() {
+					var data = creation.clone(this.mouseData.mouse);
 					return data;
 				}
 			},
@@ -154,8 +157,9 @@ function Input(creation) {
 								if (delta[index] > 1) delta[index] = 1;
 								else if (delta[index] < -1) delta[index] = -1;
 							}
-
-							self.mouseData.wheel = delta; // Hacks but it works :/
+							// Lets be real, most games don't allow scrolling sideways.
+							// Hacks but it works :/
+							self.mouseData.wheel = delta[1] ? "scrollup" : "scrolldown";
 							return false; // returning false prevents the default action (page scroll)
 						});
 					}

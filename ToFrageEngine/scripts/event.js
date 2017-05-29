@@ -21,8 +21,8 @@ function Event(creation) {
 						return typeof item == "function";
 					});
 				},
-				updateList: function() {
-					this.notifyList.forEach(function(item) { item(); });
+				updateList: function(data) {
+					this.notifyList.forEach(function(item) { item(data); });
 				},
 				findMatch: function(data) {
 					return data.includes(this.trigger);
@@ -68,6 +68,22 @@ function Event(creation) {
 		);
 	}
 
+	localContainer.continuousEvent = function(config) {
+		return creation.compose(
+			this.event(),
+			{
+				update: function(data) {
+					if (this.findMatch(data)) {
+						this.updateList(data);
+						if (this.eatOnSuccess) this.eatData(data);
+					}
+					return data;
+				}
+			},
+			config
+		);
+	}
+
 	localContainer.complexEvent = function(config) {
 		return creation.compose(
 			this.event(),
@@ -82,6 +98,31 @@ function Event(creation) {
 					this.trigger.forEach(function(item) {
 						data.splice(data.indexOf(item), 1);
 					});
+				}
+			},
+			config
+		);
+	}
+
+
+	localContainer.eventGroup = function(config) {
+		return creation.compose(
+			{
+				events: [],
+				add: function(item) {
+					if (item) this.events.push(item);
+					return this;
+				},
+				remove: function(item) {
+					if (this.events.includes(item))
+						return this.events.splice(this.events.indexOf(item), 1);
+				},
+				update: function(data) {
+					var remaining = data;
+					for (var idx=0, len=this.events.length; idx<len; idx++) {
+						if (remaining) remaining = this.events[idx].update(remaining);
+					}
+					return remaining;
 				}
 			},
 			config

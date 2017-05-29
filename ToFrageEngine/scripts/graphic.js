@@ -316,7 +316,7 @@ function Graphic(creation) {
 			height = fontWidth ? fontWidth : 12;
 
 		return creation.compose(
-			localContainer.drawable(),
+			this.drawable(),
 			{
 				text: "null",
 				font: "Arial",

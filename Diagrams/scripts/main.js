@@ -11,19 +11,19 @@ function main() {
 	layerController.add("background", engine.Graphic.getLayer());
 	layerController.add("draw", engine.Graphic.getLayer());
 
-	console.log(layerController);
+	// eventGroup
+	var eventGroup = engine.Event.eventGroup();
 
 	// Create input and an eventContext to handle it.
 	var input = engine.Input.getInput();
 	input.addListeners();
-	var inputEventContext = null; //engine.Events.getEventContext();
 
 	// Data object
 	var DATA = {
 		layerController: layerController,
 		screenArea: layerController.area,
 		input: input,
-		inputEventContext: inputEventContext,
+		eventGroup: eventGroup,
 		mainLoop: null,
 		engine: engine
 	};
@@ -35,8 +35,9 @@ function main() {
 	DATA.mainLoop = DATA.engine.Util.loop({func:function(frame) {
 		var keyInput = DATA.input.getInput();
 		//console.log("Object: ", keyInput);
+		eventGroup.update(keyInput);
 		layerController.update();
-	}, fps:1, useRAF:true});
+	}, fps:30, useRAF:true});
 
 	// Kick off the loop
 	DATA.mainLoop.start();

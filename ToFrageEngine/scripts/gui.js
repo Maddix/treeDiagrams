@@ -19,8 +19,9 @@ function GUI(engine) {
 					if (found) return this.children.splice(found, 1);
 				},
 				arrange: function() {
+					var self = this;
 					this.children.forEach(function(child) {
-						child.update(this.pos, this.area);
+						child.update(self.pos, self.area);
 					});
 				},
 				update: function(newPos, newArea) {
@@ -91,13 +92,12 @@ function GUI(engine) {
 				pad: [1, 1],
 				arrange: function() {
 					if (this.ratio) {
-						
-						this.graphic.pos = [
-							this
-						];
 						this.graphic.area = [
-
-						];
+							this.area[0]*this.pad[0],
+							this.area[1]*this.pad[1]];
+						this.graphic.pos = [
+							this.pos[0] + ((this.area[0] - this.graphic.area[0])/2),
+							this.pos[1] + ((this.area[1] - this.graphic.area[1])/2)];
 					} else {
 						this.graphic.pos = [
 							this.pos[0] + this.pad[0],
