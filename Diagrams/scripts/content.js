@@ -35,15 +35,22 @@ function createContent(DATA) {
 	.add(engine.GUI.widgetFit({ pad: [.55, .05], ratio: true, graphic: textRect }))
 	.add(engine.GUI.widgetFit({ pad: [.5, 0], ratio: true, graphic: text }));
 
+	var rect3Widget = engine.GUI.widget({ graphic: rect3 });
+	rect3Widget.events.add(engine.Event.event({trigger: 3})
+		.add(function(data) { console.log("3 Fired! Data: ", data); }));
+
+	console.log("Rect3Widget: ", rect3Widget);
+
 	row
 	.add(engine.GUI.widget({ graphic: rect }))
 	.add(container)
 	.add(engine.GUI.widgetFit({ pad: [.9, .9], ratio: true, graphic: rect2 }))
-	.add(engine.GUI.widget({ graphic: rect3 }))
+	.add(rect3Widget)
 	.arrange();
 
 	eventGroup
-	.add(engine.Event.continuousEvent({ eatOnSuccess: true, trigger: 1 })
+	.add(row.events)
+	.add(engine.Event.continuousEvent({ eatOnSuccess: false, trigger: 1 })
 		.add(function() {
 			console.log(row.within(input.getMouse()));
 		})//freeRect.pos = input.getMouse(); })

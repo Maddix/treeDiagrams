@@ -135,6 +135,7 @@ function Event(creation) {
 		return creation.compose(
 			{
 				events: [],
+				active: true,
 				add: function(item) {
 					if (item) this.events.push(item);
 					return this;
@@ -144,11 +145,18 @@ function Event(creation) {
 						return this.events.splice(this.events.indexOf(item), 1);
 				},
 				update: function(data) {
-					var remaining = data;
-					for (var idx=0, len=this.events.length; idx<len; idx++) {
-						if (remaining) remaining = this.events[idx].update(remaining);
+					if (this.active) {
+						var remaining = data;
+						var processedEvents = this.events.filter(function(event) {
+							if (event.active === undefined) return true;
+							else return event.active;
+						});
+						for (var idx=0, len=processedEvents.length; idx<len; idx++) {
+							if (remaining) remaining = processedEvents[idx].update(remaining);
+						}
+						return remaining;
 					}
-					return remaining;
+					return data;
 				}
 			},
 			config

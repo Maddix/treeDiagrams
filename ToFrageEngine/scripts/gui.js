@@ -7,13 +7,18 @@ function GUI(engine) {
 				pos: [0, 0], // 0,0 (x, y - ie position on the screen)
 				area: [100, 100], // 720x480 (Width, height)
 				children: [],
+				events: engine.Event.eventGroup({ active: false }),
 				add: function(item) {
 					this.children.push(item);
+					this.events.add(item.events);
 					return this;
 				},
 				remove: function(item) {
 					var found = this.children.indexOf(item);
-					if (found) return this.children.splice(found, 1);
+					if (found) {
+						this.events.remove(this.children[found].events);
+						return this.children.splice(found, 1);
+					}
 				},
 				arrange: function() {
 					var self = this;
@@ -27,7 +32,12 @@ function GUI(engine) {
 						if (Array.isArray(within)) return [idx, within];
 						else return within ? idx : false;
 					}).filter(function(result) { return result !== false; });
-					if (!results.length) return engine.Math.checkWithinBounds(position, this.pos, this.area, 0);
+					this.events.active = true;
+					if (!results.length) {
+						var within = engine.Math.checkWithinBounds(position, this.pos, this.area, 0);
+						this.events.active = within;
+						return within;
+					}
 					return results;
 				},
 				update: function(newPos, newArea) {
@@ -76,13 +86,17 @@ function GUI(engine) {
 				pos: [0, 0],
 				area: [0, 0],
 				graphic: null,
+				events: engine.Event.eventGroup({ active: false }),
 				arrange: function() {
 					this.graphic.pos = this.pos;
 					this.graphic.area = this.area;
 					// console.log("Arrange Graphic: Pos: ", this.graphic.pos, " Area: ", this.graphic.area);
 				},
 				within: function(position) {
-					return engine.Math.checkWithinBounds(position, this.pos, this.area, 0);
+					var result = engine.Math.checkWithinBounds(position, this.pos, this.area, 0);
+					this.events.active = result;
+					//console.log("Widget event active: ", this.events.active);
+					return result;
 				},
 				update: function(newPos, newArea) {
 					this.pos = newPos;
