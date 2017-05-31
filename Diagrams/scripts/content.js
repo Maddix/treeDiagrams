@@ -1,14 +1,12 @@
 function createContent(DATA) {
 	var engine = DATA.engine;
 
-
 	var backgroundLayer = DATA.layerController.get("background");
 	var drawLayer = DATA.layerController.get("draw");
 	var input = DATA.input;
 	var eventGroup = DATA.eventGroup;
 
-
-	row = engine.GUI.containerRow({area:DATA.screenArea});
+	var row = engine.GUI.containerRow({area:DATA.screenArea});
 	var container = engine.GUI.container();
 	var rect = engine.Graphic.rectangle({color: "orange"}),
 		rect2 = engine.Graphic.rectangle({color: "purple"}),
@@ -29,6 +27,7 @@ function createContent(DATA) {
 	drawLayer.add("text", text);
 	drawLayer.add("freeRect", freeRect);
 
+	// Should be handled when added to the layer
 	text.setup(drawLayer.context);
 	textRect.setup(drawLayer.context);
 	rect.setup(drawLayer.context);
@@ -39,53 +38,19 @@ function createContent(DATA) {
 	text.getTextWidth();
 
 	container
-	.add(engine.GUI.widgetFit({
-		pad: [.55, .05],
-		ratio: true,
-		graphic: textRect
-	}))
-	.add(engine.GUI.widgetFit({
-		pad: [.5, 0],
-		ratio: true,
-		graphic: text
-	}))
+	.add(engine.GUI.widgetFit({ pad: [.55, .05], ratio: true, graphic: textRect }))
+	.add(engine.GUI.widgetFit({ pad: [.5, 0], ratio: true, graphic: text }));
 
 	row
-	.add(engine.GUI.widget({
-		graphic: rect
-	}))
+	.add(engine.GUI.widget({ graphic: rect }))
 	.add(container)
-	.add(engine.GUI.widgetFit({
-		pad: [.9, .9],
-		ratio: true,
-		graphic: rect2
-	}))
-	.add(engine.GUI.widget({
-		graphic: rect3
-	}));
-
-	row.arrange();
-
-	var drag = engine.Event.continuousEvent({
-		eatOnSuccess: true,
-		trigger: 87
-	})
-	drag.add(function(data) {
-		freeRect.pos = input.getMouse();
-	});
-
-	var LMB = engine.Event.event({
-		eatOnSuccess: true,
-		trigger: 1 // LMB
-	});
-	LMB.add(function() {
-		console.log("FIRED!");
-	});
+	.add(engine.GUI.widgetFit({ pad: [.9, .9], ratio: true, graphic: rect2 }))
+	.add(engine.GUI.widget({ graphic: rect3 }))
+	.arrange();
 
 	eventGroup
-	.add(drag)
-	.add(LMB);
-
-
+	.add(engine.Event.continuousEvent({ eatOnSuccess: true, trigger: 87 })
+		.add(function() { freeRect.pos = input.getMouse(); })
+	);
 
 }

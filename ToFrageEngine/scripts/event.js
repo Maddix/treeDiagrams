@@ -10,13 +10,13 @@ function Event(creation) {
 				add: function(item) {
 					var isFunc = typeof item == "function";
 					if (isFunc) this.notifyList.push(item);
-					return isFunc;
+					return this; // Should I return true/false?
 				},
 				remove: function(item) {
 					if (this.notifyList.includes(item))
 						return this.notifyList.splice(this.notifyList.indexOf(item), 1);
 				},
-				clean: function() {
+				clean: function() { // Not needed?
 					this.notifyList = this.notifyList.filter(function(item) {
 						return typeof item == "function";
 					});
@@ -74,7 +74,7 @@ function Event(creation) {
 			{
 				update: function(data) {
 					if (this.findMatch(data)) {
-						this.updateList(data);
+						this.updateList();
 						if (this.eatOnSuccess) this.eatData(data);
 					}
 					return data;
@@ -104,6 +104,32 @@ function Event(creation) {
 		);
 	}
 
+	localContainer.button = function(config) {
+		return creation.compose(
+			{
+				tripped: false,
+				trigger: null, // The triggering data
+				pressed: null,
+				released: null,
+				findMatch: function(data) {
+					return data.includes(this.trigger);
+				},
+				update: function(data) {
+					var found = this.findMatch(data);
+					if (found && !this.tripped) {
+						if (this.pressed) this.pressed();
+						if (this.eatOnSuccess) this.eatData(data);
+						this.tripped = true;
+					} else if (!found){
+						this.tripped = false;
+						if (this.released) this.released();
+					}
+					return data;
+				}
+			},
+			config
+		);
+	}
 
 	localContainer.eventGroup = function(config) {
 		return creation.compose(

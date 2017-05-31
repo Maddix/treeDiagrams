@@ -1,6 +1,3 @@
-// /////////////
-// Window system
-
 function GUI(engine) {
 	var localContainer = {};
 
