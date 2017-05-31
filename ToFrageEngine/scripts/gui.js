@@ -21,6 +21,15 @@ function GUI(engine) {
 						child.update(self.pos, self.area);
 					});
 				},
+				within: function(position) {
+					var results = this.children.map(function(child, idx) {
+						var within = child.within(position);
+						if (Array.isArray(within)) return [idx, within];
+						else return within ? idx : false;
+					}).filter(function(result) { return result !== false; });
+					if (!results.length) return engine.Math.checkWithinBounds(position, this.pos, this.area, 0);
+					return results;
+				},
 				update: function(newPos, newArea) {
 					this.pos = newPos;
 					this.area = newArea;
@@ -71,6 +80,9 @@ function GUI(engine) {
 					this.graphic.pos = this.pos;
 					this.graphic.area = this.area;
 					// console.log("Arrange Graphic: Pos: ", this.graphic.pos, " Area: ", this.graphic.area);
+				},
+				within: function(position) {
+					return engine.Math.checkWithinBounds(position, this.pos, this.area, 0);
 				},
 				update: function(newPos, newArea) {
 					this.pos = newPos;

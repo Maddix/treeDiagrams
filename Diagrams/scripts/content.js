@@ -6,7 +6,7 @@ function createContent(DATA) {
 	var input = DATA.input;
 	var eventGroup = DATA.eventGroup;
 
-	var row = engine.GUI.containerRow({area:DATA.screenArea});
+	var row = engine.GUI.containerRow({area:[850, DATA.screenArea[1]]});
 	var container = engine.GUI.container();
 	var rect = engine.Graphic.rectangle({color: "orange"}),
 		rect2 = engine.Graphic.rectangle({color: "purple"}),
@@ -43,8 +43,10 @@ function createContent(DATA) {
 	.arrange();
 
 	eventGroup
-	.add(engine.Event.continuousEvent({ eatOnSuccess: true, trigger: 87 })
-		.add(function() { freeRect.pos = input.getMouse(); })
+	.add(engine.Event.continuousEvent({ eatOnSuccess: true, trigger: 1 })
+		.add(function() {
+			console.log(row.within(input.getMouse()));
+		})//freeRect.pos = input.getMouse(); })
 	);
 
 }
