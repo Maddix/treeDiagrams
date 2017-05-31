@@ -57,6 +57,7 @@ function Creation() {
 		return Array.apply(null, Array(total)).map(func);
 	}
 
+	// Phasing out
 	localContainer.orderedDictionary = function(config) {
 		return this.extend({
 			objects: {},
@@ -106,6 +107,64 @@ function Creation() {
 			config
 		);
 	};
+
+	// Size?
+	// ChangePosition?
+	localContainer.simpleContainer = function(config) {
+		return this.extend(
+			{
+				contents: [],
+				validateNewContent: function(item) {
+					return true;
+				},
+				_add: function(item) {
+					this.contents.push(item);
+				},
+				add: function(item) {
+					var args = Array.from(arguments);
+					if (this.validateNewContent.apply(this, args)) {
+						this._add.apply(this, args);
+					}
+					return this;
+				},
+				remove: function(item) {
+					var idx = this.contents.indexOf(item);
+					if (idx != -1) return this.contents.splice(idx, 1);
+					// Return something otherwise?
+				}
+			},
+			config
+		);
+	}
+
+	localContainer.namedContainer = function(config) {
+		return this.compose(
+			this.simpleContainer(),
+			{
+				contentNames: [],
+				_add: function(item, name) {
+					this.contents.push(item);
+					this.contentNames.push(name);
+				},
+				get: function(name) {
+					var idx = this.contentNames.indexOf(name);
+					if (idx != -1) return this.contents[idx];
+				},
+				removeByName: function(name) {
+					var idx = this.contentNames.indexOf(name);
+					if (idx != -1) {
+						this.contentNames.splice(idx, 1);
+						return this.contents.splice(idx, 1);
+					}
+					// Return something otherwise?
+				},
+				remove: function(item) {
+					return this.removeByName(this.contentNames[this.content.indexOf(item)]);
+				}
+			},
+			config
+		);
+	}
 
 	return localContainer;
 }

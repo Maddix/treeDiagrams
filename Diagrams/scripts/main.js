@@ -1,15 +1,15 @@
 function main() {
 	var engine = Engine();
 
-	// Create the layerController (AKA - Graphic controller)
-	var layerController = engine.Graphic.getLayerController({
+	// Create the layerContainer (AKA - Graphic controller)
+	var layerContainer = engine.Graphic.layerContainer({
 		area: [1024, 640],
 		container: document.getElementById("container")
 	});
 
 	// Create all the layers we are going to use, order matters
-	layerController.add("background", engine.Graphic.getLayer());
-	layerController.add("draw", engine.Graphic.getLayer());
+	layerContainer.add(engine.Graphic.layer(), "background");
+	layerContainer.add(engine.Graphic.layer(), "draw");
 
 	// eventGroup
 	var eventGroup = engine.Event.eventGroup();
@@ -20,8 +20,8 @@ function main() {
 
 	// Data object
 	var DATA = {
-		layerController: layerController,
-		screenArea: layerController.area,
+		layerContainer: layerContainer,
+		screenArea: layerContainer.area,
 		input: input,
 		eventGroup: eventGroup,
 		mainLoop: null,
@@ -36,7 +36,7 @@ function main() {
 		var keyInput = DATA.input.getInput();
 		//console.log("Object: ", keyInput);
 		eventGroup.update(keyInput);
-		layerController.update();
+		layerContainer.update();
 	}, fps:30, useRAF:true});
 
 	// Kick off the loop

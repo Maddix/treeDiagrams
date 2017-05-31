@@ -66,42 +66,48 @@ function Graphic(creation) {
 		this.contextReset(context);
 	};
 
-	//
-	//
 	// Takes a number or string and appends a 'px' if one is not present. (Aweful name. :c)
 	// Is addPx a more fitting name?
 	localContainer.makeCssPixel = function(item) {
-		if (typeof item === "string" && item.slice(-2).toLowerCase() === "px") return item;
-		return item + "px";
+		if (creation.isType(item, "")) return item.endsWith("px") ? item : item + "px";
+		return item;
 	}
 
-	//
 	// Creates a canvas element and manages it. Used for drawing to the screen.
-	localContainer.getLayer = function() {
+	localContainer.layer = function() {
 		return creation.extend(
-			creation.orderedDictionary(),
+			creation.simpleContainer(),
 			{
 				canvas: undefined,
 				context: undefined,
-				objectCount: 0,
 				style: "position: absolute; background-color: transparent;",
-				validate: function(object) {
+				validateNewContent: function(object) {
 					if (object.updateGraphics && object.setup) return true;
+				},
+				_add: function(item) {
+					this.contents.push(item);
+					if (this.context) item.setup(this.context);
 				},
 				// Creates a canvas element and then gets the canvas 2d object by default.
 				setup: function(container, id, area, is3d) {
 					var canvas = document.createElement("canvas");
 					canvas.setAttribute("id", id);
-					canvas.setAttribute("width", localContainer.makeCssPixel(area[0]));
-					canvas.setAttribute("height", localContainer.makeCssPixel(area[1]));
+					canvas.setAttribute("width", localContainer.makeCssPixel(String(area[0])));
+					canvas.setAttribute("height", localContainer.makeCssPixel(String(area[1])));
 					canvas.setAttribute("style", this.style);
 					this.context = canvas.getContext(is3d ? "3d" : "2d");
 					container.appendChild(canvas);
 					this.canvas = canvas;
+					if (this.contents.length && this.context) {
+						this.contents.forEach(function(object) {
+							object.setup(this.context);
+						});
+					}
 				},
 				updateGraphics: function() {
 					this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-					this.iterateOverObjects(function(object) {
+					//console.log(this.contents.length);
+					this.contents.forEach(function(object) {
 						object.updateGraphics();
 					});
 				}
@@ -109,56 +115,55 @@ function Graphic(creation) {
 		);
 	}
 
-	localContainer.getLayerController = function(config) {
-		var local = {
-			layerCountId: 0,
-			area: [640, 480],
-			is3d: false,
-			div: null, // Pass in a div if your not planning on creating one
-			divAttributes: {
-				id: "engine",
-				oncontextmenu: "return false;",
-				style: undefined
-			},
-			container: undefined,
-			validate: function(object) {
-				if (object.setup) return true;
-			},
-			setup: function(container) {
-				if (!this.divAttributes.style) {
-					this.divAttributes.style = "position: relative; width: {0}; height: {1};".format(
-						localContainer.makeCssPixel(local.area[0]),
-						localContainer.makeCssPixel(local.area[1]));
+	localContainer.layerContainer = function(config) {
+		var lc = creation.compose(
+			creation.namedContainer(),
+			{
+				LayerIdx: 0,
+				area: [640, 480],
+				is3d: false,
+				container: null, // Required
+				div: null, // Will get created
+				divAttributes: {
+					id: "engine",
+					oncontextmenu: "return false;"
+				},
+				validateNewContent(object) {
+					return !!object.setup;
+				},
+				_add: function(item, name) {
+					this.contents.push(item);
+					this.contentNames.push(name);
+					var id = "Layer".concat(this.LayerIdx++, "-", name ? name : "");
+					item.setup(this.div, id, this.area, this.is3d);
+				},
+				update: function() {
+					//console.log("Fired");
+					this.contents.forEach(function(object) {
+						object.updateGraphics();
+					});
 				}
-
-				var div = document.createElement("div");
-				for (var key in this.divAttributes) {
-					div.setAttribute(key, this.divAttributes[key]);
-				}
-				container.appendChild(div);
-				this.div = div;
 			},
-			update: function() {
-				this.iterateOverObjects(function(object) {
-					object.updateGraphics();
-				});
-			}
-		};
+			config
+		);
 
-		local = creation.extend(creation.orderedDictionary(), local);
-		var add = local.add.bind(local);
-		local.add = function(objectName, object) {
-			if (add(objectName, object)) {
-				var layerId = "Layer".concat(this.layerCountId++, "-", objectName);
-				object.setup(this.div, layerId, this.area, this.is3d);
-				return true;
+		if (!lc.divAttributes.style) {
+			lc.divAttributes.style = "position: relative; width: {0}; height: {1};".format(
+				localContainer.makeCssPixel(String(lc.area[0])),
+				localContainer.makeCssPixel(String(lc.area[1]))
+			);
+		}
+		if (!lc.div) {
+			lc.div = document.createElement("div");
+			for (var key in lc.divAttributes) {
+				lc.div.setAttribute(key, lc.divAttributes[key]);
 			}
-		};
-		creation.extend(local, config);
+			lc.container.appendChild(lc.div);
+		} else console.error("LayerContainer requires a div to setup.")
 
-		if (local.container) local.setup(local.container);
-		return local;
-	};
+		return lc;
+	}
+
 
 	// The simplest drawable object.
 	localContainer.drawable = function(config) {
@@ -333,7 +338,7 @@ function Graphic(creation) {
 				},
 				// Set the font on the context.
 				setFont: function() {
-					this.context.font = "{0} {1}".format(localContainer.makeCssPixel(height), this.font);
+					this.context.font = "{0} {1}".format(localContainer.makeCssPixel(String(height)), this.font);
 				},
 				// Set the font and get the width of the text
 				getTextWidth: function() {

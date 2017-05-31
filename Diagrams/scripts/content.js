@@ -1,8 +1,8 @@
 function createContent(DATA) {
 	var engine = DATA.engine;
 
-	var backgroundLayer = DATA.layerController.get("background");
-	var drawLayer = DATA.layerController.get("draw");
+	var backgroundLayer = DATA.layerContainer.get("background");
+	var drawLayer = DATA.layerContainer.get("draw");
 	var input = DATA.input;
 	var eventGroup = DATA.eventGroup;
 
@@ -17,23 +17,17 @@ function createContent(DATA) {
 			text:"Hello World!",
 			align:"start",
 			baseline: "middle",
-			color: "black"
-		}, 20);
+			color: "black",
+			font: "Hack"
+		}, 17);
 
-	drawLayer.add("rect", rect);
-	drawLayer.add("rect2", rect2);
-	drawLayer.add("rect3", rect3);
-	drawLayer.add("textRect", textRect);
-	drawLayer.add("text", text);
-	drawLayer.add("freeRect", freeRect);
-
-	// Should be handled when added to the layer
-	text.setup(drawLayer.context);
-	textRect.setup(drawLayer.context);
-	rect.setup(drawLayer.context);
-	rect2.setup(drawLayer.context);
-	rect3.setup(drawLayer.context);
-	freeRect.setup(drawLayer.context);
+	drawLayer
+	.add(rect)
+	.add(rect2)
+	.add(rect3)
+	.add(textRect)
+	.add(text)
+	.add(freeRect);
 
 	text.getTextWidth();
 
