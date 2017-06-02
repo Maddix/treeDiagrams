@@ -71,7 +71,7 @@ function Input(creation) {
 					if (index != -1) this.inputList.splice(index, 1);
 				},
 				getInput: function() {
-					var data = creation.clone(this.inputList).concat(this.mouseData);
+					var data = creation.clone(this.inputList).concat(creation.clone(this.mouseData));
 					this.mouseData.wheel = "";
 					return data;
 				},
@@ -159,7 +159,7 @@ function Input(creation) {
 							}
 							// Lets be real, most games don't allow scrolling sideways.
 							// Hacks but it works :/
-							self.mouseData.wheel = delta[1] ? "scrollup" : "scrolldown";
+							self.mouseData.wheel = delta[1] > 0 ? "scrollup" : "scrolldown";
 							return false; // returning false prevents the default action (page scroll)
 						});
 					}

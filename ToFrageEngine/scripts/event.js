@@ -55,7 +55,7 @@ function Event(creation) {
 				update: function(data) { // Expects a list of data
 					var found = this.findMatch(data);
 					if (found && !this.tripped) {
-						this.updateList();
+						this.updateList(data);
 						if (this.eatOnSuccess) this.eatData(data);
 						this.tripped = true;
 					} else if (!found){
@@ -92,7 +92,7 @@ function Event(creation) {
 				// trigger: ["data1", 32, "data3", "four"]
 				// Will only trigger if everything in 'trigger' is in data somewhere.
 				findMatch: function(data) {
-					return !(this.trigger.length - this.trigger.filter(data.includes).length);
+					return !(this.trigger.length - this.trigger.filter(function(trigger) { return data.includes(trigger); }).length);
 				},
 				eatData: function(data) {
 					this.trigger.forEach(function(item) {

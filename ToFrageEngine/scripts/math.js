@@ -31,6 +31,10 @@ function GameMath() {
 		return total / averageList.length;
 	};
 
+	local.addVector = function(vec1, vec2) {
+		return [vec1[0] + vec2[0], vec1[1] + vec2[1]];
+	}
+
 	// Careful! 0 radians is straight up, Not to the left like normal! Add 90 degrees to fix it!
 	// http://math.rice.edu/~pcmi/sphere/drg_txt.html - radian tutorial. very good!
 	local.getAngle = function(from, to) {

@@ -6,7 +6,10 @@ function createContent(DATA) {
 	var input = DATA.input;
 	var eventGroup = DATA.eventGroup;
 
+
+
 	var row = engine.GUI.containerRow({area:[850, DATA.screenArea[1]]});
+	var row2 = engine.GUI.containerColumn();
 	var container = engine.GUI.container();
 	var rect = engine.Graphic.rectangle({color: "orange"}),
 		rect2 = engine.Graphic.rectangle({color: "purple"}),
@@ -31,8 +34,19 @@ function createContent(DATA) {
 
 	text.getTextWidth();
 
-	container
-	.add(engine.GUI.widgetFit({ pad: [.55, .05], ratio: true, graphic: textRect }))
+	var row2RectWidget = engine.GUI.widgetAbs({
+		localPos: [.5, .5],
+		localArea: [100, 100],
+		localPosRatio: true,
+		localAreaRatio: false,
+		graphic: textRect
+	});
+	row2RectWidget.events.add(engine.Event.complexEvent({trigger:[38, 37]})
+		.add(function(data) { console.log("Row2Rect 3 Pressed! Data: ", data); }));
+
+	//container
+	row2
+	.add(row2RectWidget)
 	.add(engine.GUI.widgetFit({ pad: [.5, 0], ratio: true, graphic: text }));
 
 	var rect3Widget = engine.GUI.widget({ graphic: rect3 });
@@ -42,18 +56,18 @@ function createContent(DATA) {
 	console.log("Rect3Widget: ", rect3Widget);
 
 	row
-	.add(engine.GUI.widget({ graphic: rect }))
-	.add(container)
 	.add(engine.GUI.widgetFit({ pad: [.9, .9], ratio: true, graphic: rect2 }))
+	.add(engine.GUI.widget({ graphic: rect }))
+	.add(row2)
 	.add(rect3Widget)
 	.arrange();
 
 	eventGroup
-	.add(row.events)
-	.add(engine.Event.continuousEvent({ eatOnSuccess: false, trigger: 1 })
+	.add(engine.Event.event({ eatOnSuccess: false, trigger: 1 })
 		.add(function() {
 			console.log(row.within(input.getMouse()));
 		})//freeRect.pos = input.getMouse(); })
-	);
+	)
+	.add(row.events);
 
 }

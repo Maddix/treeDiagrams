@@ -55,6 +55,7 @@ function GUI(engine) {
 			this.container(),
 			{
 				arrangeFunc: function(total, pos, area) {
+					var area = [area[0]/total, area[1]];
 					return engine.Creation.genArray(total, function(_, idx) {
 						return [[pos[0] + (area[0]*idx), pos[1]], area];
 					});
@@ -62,19 +63,28 @@ function GUI(engine) {
 				arrange: function() {
 					var totalCells = this.children.length;
 					if (totalCells) {
-						var area = [this.area[0]/totalCells, this.area[1]],
-						calc = this.arrangeFunc(totalCells, this.pos, area);
+						var positionalData = this.arrangeFunc(totalCells, this.pos, this.area);
 						this.children.forEach(function(child, idx) {
-							var data = calc[idx];
+							var data = positionalData[idx];
 							child.update(data[0], data[1]);
 						});
 					}
-				},
-				update: function(newPos, newArea) {
-					this.pos = newPos;
-					this.area = newArea;
-					this.arrange();
-				},
+				}
+			},
+			config
+		);
+	}
+
+	localContainer.containerColumn = function(config) {
+		return engine.Creation.compose(
+			this.containerRow(),
+			{
+				arrangeFunc: function(total, pos, area) {
+					var area = [area[0], area[1]/total];
+					return engine.Creation.genArray(total, function(_, idx) {
+						return [[pos[0], pos[1] + (area[1]*idx)], area];
+					});
+				}
 			},
 			config
 		);
@@ -113,14 +123,17 @@ function GUI(engine) {
 			this.widget(),
 			{
 				pad: [1, 1],
+				ratio: true,
 				arrange: function() {
 					if (this.ratio) {
 						this.graphic.area = [
 							this.area[0]*this.pad[0],
-							this.area[1]*this.pad[1]];
+							this.area[1]*this.pad[1]
+						];
 						this.graphic.pos = [
 							this.pos[0] + ((this.area[0] - this.graphic.area[0])/2),
-							this.pos[1] + ((this.area[1] - this.graphic.area[1])/2)];
+							this.pos[1] + ((this.area[1] - this.graphic.area[1])/2)
+						];
 					} else {
 						this.graphic.pos = [
 							this.pos[0] + this.pad[0],
@@ -132,6 +145,50 @@ function GUI(engine) {
 						];
 					}
 				}
+			},
+			config
+		);
+	}
+
+	localContainer.widgetAbs = function(config) {
+		return engine.Creation.compose(
+			this.widget(),
+			{
+				localPos: [.5, .5], // This plus area
+				localArea: [.5, .5], // This takes priority
+				localPosRatio: true,
+				localAreaRatio: true,
+				arrange: function() {
+					this.graphic.pos = this.pos;
+					this.graphic.area = this.area;
+				},
+				update: function(newPos, newArea) {
+					// Prioritize area over pos
+					if (this.localAreaRatio) {
+						this.area = [
+							newArea[0]*this.localArea[0],
+							newArea[1]*this.localArea[1]
+						].map(Math.abs);
+					} else {
+						this.area = [
+							this.localArea[0] < newArea[0] ? this.localArea[0] : newArea[0],
+							this.localArea[1] < newArea[1] ? this.localArea[1] : newArea[1]
+						];
+					}
+					if (this.localPosRatio) {
+						this.pos = [
+							newPos[0] + (newArea[0] - this.area[0])*this.localPos[0],
+							newPos[1] + (newArea[1] - this.area[1])*this.localPos[1]
+						];
+					} else {
+						this.pos = [
+							newPos[0] + (this.localPos[0] + this.area[0] <= newArea[0] ? this.localPos[0] : newArea[0] - this.area[0]),
+							newPos[1] + (this.localPos[1] + this.area[1] <= newArea[1] ? this.localPos[1] : newArea[1] - this.area[1])
+						];
+					}
+					this.arrange();
+				}
+
 			},
 			config
 		);
