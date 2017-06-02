@@ -37,7 +37,7 @@ function main() {
 		//console.log("Object: ", keyInput);
 		eventGroup.update(keyInput);
 		layerContainer.update();
-	}, fps:30, useRAF:true});
+	}, fps:80, useRAF:true});
 
 	// Kick off the loop
 	DATA.mainLoop.start();

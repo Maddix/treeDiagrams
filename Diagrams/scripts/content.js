@@ -9,40 +9,38 @@ function createContent(DATA) {
 
 
 	var row = engine.GUI.containerRow({area:[850, DATA.screenArea[1]]});
-	var row2 = engine.GUI.containerColumn();
+	var row2 = engine.GUI.container();
 	var container = engine.GUI.container();
 	var rect = engine.Graphic.rectangle({color: "orange"}),
 		rect2 = engine.Graphic.rectangle({color: "purple"}),
 		rect3 = engine.Graphic.rectangle({color: "red"}),
-		freeRect = engine.Graphic.rectangle({pos: [700, 100], color: "white", alpha:.6}),
-		textRect = engine.Graphic.rectangle({color: "cyan"}),
+		freeRect = engine.Graphic.rectangle({pos: [700, 100], color: "white", alpha:1}),
+		textRect = engine.Graphic.rectangle({color: "gray"}),
 		text = engine.Graphic.text({
 			text:"Hello World!",
 			align:"start",
 			baseline: "middle",
-			color: "black",
+			color: "white",
 			font: "Hack"
 		}, 17);
 
 	drawLayer
+	.add(textRect)
+	.add(text)
 	.add(rect)
 	.add(rect2)
 	.add(rect3)
-	.add(textRect)
-	.add(text)
 	.add(freeRect);
 
 	text.getTextWidth();
 
 	var row2RectWidget = engine.GUI.widgetAbs({
-		localPos: [.5, .5],
-		localArea: [.3, .4],
-		localPosRatio: true,
+		localPos: [40, 280],
+		localArea: [.7, .1],
+		localPosRatio: false,
 		localAreaRatio: true,
 		graphic: textRect
 	});
-	row2RectWidget.events.add(engine.Event.complexEvent({trigger:[38, 37]})
-		.add(function(data) { console.log("Row2Rect 3 Pressed! Data: ", data); }));
 
 	//container
 	row2
@@ -61,6 +59,18 @@ function createContent(DATA) {
 	.add(row2)
 	.add(rect3Widget)
 	.arrange();
+
+	row2RectWidget.events.add(engine.Event.continuousEvent({trigger:1})
+	.add(function(data) {
+		var mouse = data[data.length-1].mouse;
+		console.log("Pressed! Data: ", mouse);
+		row2RectWidget.localPos = [
+			mouse[0] - row2.pos[0],
+			mouse[1] - row2.pos[1]
+		].map(function(x) { return x < 0 ? 0 : x; });
+
+		row.arrange();
+	}));
 
 	eventGroup
 	.add(engine.Event.event({ eatOnSuccess: false, trigger: 1 })

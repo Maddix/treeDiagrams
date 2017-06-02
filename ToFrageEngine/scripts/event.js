@@ -74,7 +74,7 @@ function Event(creation) {
 			{
 				update: function(data) {
 					if (this.findMatch(data)) {
-						this.updateList();
+						this.updateList(data);
 						if (this.eatOnSuccess) this.eatData(data);
 					}
 					return data;
