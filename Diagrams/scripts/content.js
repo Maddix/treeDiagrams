@@ -36,9 +36,9 @@ function createContent(DATA) {
 
 	var row2RectWidget = engine.GUI.widgetAbs({
 		localPos: [.5, .5],
-		localArea: [100, 100],
+		localArea: [.3, .4],
 		localPosRatio: true,
-		localAreaRatio: false,
+		localAreaRatio: true,
 		graphic: textRect
 	});
 	row2RectWidget.events.add(engine.Event.complexEvent({trigger:[38, 37]})

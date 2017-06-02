@@ -100,7 +100,6 @@ function GUI(engine) {
 				arrange: function() {
 					this.graphic.pos = this.pos;
 					this.graphic.area = this.area;
-					// console.log("Arrange Graphic: Pos: ", this.graphic.pos, " Area: ", this.graphic.area);
 				},
 				within: function(position) {
 					var result = engine.Math.checkWithinBounds(position, this.pos, this.area, 0);
@@ -154,8 +153,8 @@ function GUI(engine) {
 		return engine.Creation.compose(
 			this.widget(),
 			{
-				localPos: [.5, .5], // This plus area
-				localArea: [.5, .5], // This takes priority
+				localPos: [.5, .5],
+				localArea: [.5, .5],
 				localPosRatio: true,
 				localAreaRatio: true,
 				arrange: function() {
@@ -170,9 +169,13 @@ function GUI(engine) {
 							newArea[1]*this.localArea[1]
 						].map(Math.abs);
 					} else {
+						var area = [
+							this.localArea[0] < 0 ? newArea[0] + this.localArea[0] : this.localArea[0],
+							this.localArea[1] < 0 ? newArea[1] + this.localArea[1] : this.localArea[1]
+						].map(Math.abs);
 						this.area = [
-							this.localArea[0] < newArea[0] ? this.localArea[0] : newArea[0],
-							this.localArea[1] < newArea[1] ? this.localArea[1] : newArea[1]
+							area[0] < newArea[0] ? area[0] : newArea[0],
+							area[1] < newArea[1] ? area[1] : newArea[1]
 						];
 					}
 					if (this.localPosRatio) {
@@ -181,9 +184,21 @@ function GUI(engine) {
 							newPos[1] + (newArea[1] - this.area[1])*this.localPos[1]
 						];
 					} else {
+						var posSpace = [
+							newArea[0] - this.area[0],
+							newArea[1] - this.area[1]
+						];
+						var negativePos = [
+							posSpace[0] + this.localPos[0],
+							posSpace[1] + this.localPos[1]
+						].map(function(x) { return x < 0 ? 0 : x; });
+						var pos = [
+							this.localPos[0] < 0 ? negativePos[0] : this.localPos[0],
+							this.localPos[1] < 0 ? negativePos[1] : this.localPos[1]
+						].map(Math.abs);
 						this.pos = [
-							newPos[0] + (this.localPos[0] + this.area[0] <= newArea[0] ? this.localPos[0] : newArea[0] - this.area[0]),
-							newPos[1] + (this.localPos[1] + this.area[1] <= newArea[1] ? this.localPos[1] : newArea[1] - this.area[1])
+							newPos[0] + (pos[0] + this.area[0] <= newArea[0] ? pos[0] : posSpace[0]),
+							newPos[1] + (pos[1] + this.area[1] <= newArea[1] ? pos[1] : posSpace[1])
 						];
 					}
 					this.arrange();
