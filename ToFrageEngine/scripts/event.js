@@ -7,6 +7,7 @@ function Event(creation) {
 				tripped: false,
 				trigger: null, // The triggering data
 				notifyList: [],
+				reset: function() { this.tripped = false; },
 				add: function(item) {
 					var isFunc = typeof item == "function";
 					if (isFunc) this.notifyList.push(item);
@@ -98,33 +99,6 @@ function Event(creation) {
 					this.trigger.forEach(function(item) {
 						data.splice(data.indexOf(item), 1);
 					});
-				}
-			},
-			config
-		);
-	}
-
-	localContainer.button = function(config) {
-		return creation.compose(
-			{
-				tripped: false,
-				trigger: null, // The triggering data
-				pressed: null,
-				released: null,
-				findMatch: function(data) {
-					return data.includes(this.trigger);
-				},
-				update: function(data) {
-					var found = this.findMatch(data);
-					if (found && !this.tripped) {
-						if (this.pressed) this.pressed();
-						if (this.eatOnSuccess) this.eatData(data);
-						this.tripped = true;
-					} else if (!found){
-						this.tripped = false;
-						if (this.released) this.released();
-					}
-					return data;
 				}
 			},
 			config

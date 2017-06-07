@@ -6,78 +6,66 @@ function createContent(DATA) {
 	var input = DATA.input;
 	var eventGroup = DATA.eventGroup;
 
+	console.log(DATA.screenArea);
+	var topBar = engine.GUI.container({area:[DATA.screenArea[0], 80]});
 
-
-	var row = engine.GUI.containerRow({area:[850, DATA.screenArea[1]]});
-	var row2 = engine.GUI.container();
-	var container = engine.GUI.container();
-	var rect = engine.Graphic.rectangle({color: "orange"}),
-		rect2 = engine.Graphic.rectangle({color: "purple"}),
-		rect3 = engine.Graphic.rectangle({color: "red"}),
-		freeRect = engine.Graphic.rectangle({pos: [700, 100], color: "white", alpha:1}),
-		textRect = engine.Graphic.rectangle({color: "gray"}),
-		text = engine.Graphic.text({
-			text:"Hello World!",
-			align:"start",
-			baseline: "middle",
-			color: "white",
-			font: "Hack"
-		}, 17);
-
-	drawLayer
-	.add(textRect)
-	.add(text)
-	.add(rect)
-	.add(rect2)
-	.add(rect3)
-	.add(freeRect);
-
-	text.getTextWidth();
-
-	var row2RectWidget = engine.GUI.widgetAbs({
-		localPos: [40, 280],
-		localArea: [.7, .1],
-		localPosRatio: false,
-		localAreaRatio: true,
-		graphic: textRect
+	var debugRect = engine.Graphic.rectangle({color:"grey"});
+	var wrenchIcon = engine.Graphic.lines({
+		lineWidth: 2,
+		color:"white",
+		pos: [70, 70],
+		//rotation: Math.PI/5
 	});
 
-	//container
-	row2
-	.add(row2RectWidget)
-	.add(engine.GUI.widgetFit({ pad: [.5, 0], ratio: true, graphic: text }));
-
-	var rect3Widget = engine.GUI.widget({ graphic: rect3 });
-	rect3Widget.events.add(engine.Event.event({trigger: 3})
-		.add(function(data) { console.log("3 Fired! Data: ", data); }));
-
-	console.log("Rect3Widget: ", rect3Widget);
-
-	row
-	.add(engine.GUI.widgetFit({ pad: [.9, .9], ratio: true, graphic: rect2 }))
-	.add(engine.GUI.widget({ graphic: rect }))
-	.add(row2)
-	.add(rect3Widget)
-	.arrange();
-
-	row2RectWidget.events.add(engine.Event.continuousEvent({trigger:1})
-	.add(function(data) {
-		var mouse = data[data.length-1].mouse;
-		console.log("Pressed! Data: ", mouse);
-		row2RectWidget.localPos = [
-			mouse[0] - row2.pos[0],
-			mouse[1] - row2.pos[1]
-		].map(function(x) { return x < 0 ? 0 : x; });
-
-		row.arrange();
+	var wrenchWidget = engine.GUI.widgetAbs({
+		localPos: [.9, .5],
+		localArea:[20, 50],
+		localAreaRatio: false,
+		graphic: wrenchIcon
+	});
+	wrenchWidget.events
+	.add(engine.Event.event({trigger: 1})
+		.add(function() {
+			console.log("Clicked!");
+			wrenchIcon.color = "orange";
+	}))
+	.add(engine.Event.lateEvent({trigger: 1})
+		.add(function() {
+			wrenchIcon.color = "white";
+			if (wrenchWidget.within(input.getMouse())) console.log("Released.");
 	}));
+
+	drawLayer
+	.add(debugRect)
+	.add(wrenchIcon);
+
+	topBar
+	.add(engine.GUI.widgetFit({pad:[1, 1], graphic: debugRect}))
+	.add(wrenchWidget)
+	.arrange();
 
 	eventGroup
 	.add(engine.Event.event({ eatOnSuccess: false, trigger: 1 })
 		.add(function() {
-			console.log(row.within(input.getMouse()));
-		})//freeRect.pos = input.getMouse(); })
+			console.log(topBar.within(input.getMouse()));
+		})
 	)
-	.add(row.events);
+	.add(topBar.events);
 
+	wrenchIcon.shape = [
+		[ // I. Handle
+			17, 20, 10, 0, 0, 70, -8, 0, 0, -70],
+		[ // II. Base
+			30, 10, 0, 10, -30, 0, 0, -5, 15, 0, 5, -5, 10, 0],
+		[ // III. Arm Pt 1
+			5, 0, 0, 15, 5, 0, 0, -15],
+		[ // III Arm Pt 2
+			5, 20, 0, 25, 5, 0, 0, -25],
+		[ // III Arm Pt 2 screw marks
+			5, 20, 0, 4, 5, 0, 0, 4, -5, 0, 0, 4, 5, 0],
+		[ // IV. Arm Head
+			0, 0, 0, -10, 25, 0, 5, 5, -10, 0, -5, 5, -15, 0]
+	];
+	wrenchIcon.scale(.5);
+	console.log(wrenchIcon);
 }

@@ -367,6 +367,7 @@ function Graphic(creation) {
 		return creation.compose(
 			localContainer.drawable(),
 			{
+				rotation: 0,
 				area:[100, 100],
 				color:"white" // Should it be black?
 			},
@@ -385,6 +386,7 @@ function Graphic(creation) {
 				borderAlpha:1,
 				drawBorder: function() {
 					this.context.globalAlpha = this.borderAlpha;
+
 					this.context.lineJoin = this.borderStyle;
 					this.context.lineWidth = this.borderWidth;
 					this.context.strokeStyle = this.borderColor;
@@ -474,6 +476,7 @@ function Graphic(creation) {
 				lineWidth: 1,
 				updateGraphics: function() {
 					this.context.globalAlpha = this.alpha;
+					localContainer.contextTranslateRotate(this.context, this.pos, this.rotation);
 					this.context.beginPath(); // Needed. Major lag if removed.
 					this.context.moveTo(this.pos[0], this.pos[1]);
 					this.context.lineTo(this.pos[0] + this.area[0], this.pos[1] + this.area[1]);
@@ -482,6 +485,7 @@ function Graphic(creation) {
 					this.context.lineWidth = this.lineWidth;
 					this.context.strokeStyle = this.color;
 					this.context.stroke();
+					localContainer.contextReset(this.context);
 				}
 			},
 			config
@@ -496,20 +500,31 @@ function Graphic(creation) {
 				style: "round",
 				lineWidth: 1,
 				shape: [], // Holds lists of points, each new list is a new line -> [[startX,startY, x,y, ..], [startX,startY, x,y], ..]
-				updateGraphics: function() {
-					this.context.globalAlpha = this.alpha;
+				scale: function(scalar) { // Destructive atm.
+					this.shape = this.shape.map(function(group) {
+						return group.map(function(coord) { return coord * scalar; });
+					});
+					return this;
+				},
+				drawShape: function() {
 					this.context.beginPath();
-					for (var lineIndex=0; lineIndex < this.shape.length; lineIndex++) {
-						for (var pointIndex=0; pointIndex < this.shape[lineIndex].length; pointIndex+=2) {
-							var line = this.shape[lineIndex];
-							if (pointIndex === 0) this.context.moveTo(this.pos[0] + line[pointIndex], this.pos[1] + line[pointIndex+1]);
-							else this.context.lineTo(this.pos[0] + line[pointIndex], this.pos[1] + line[pointIndex+1]);
+					for (var lineIdx=0, groupLen=this.shape.length; lineIdx < groupLen; lineIdx++) {
+						var line = this.shape[lineIdx], place = [line[0], line[1]];
+						this.context.moveTo(place[0], place[1]);
+						for (var pointIdx=2, len=this.shape[lineIdx].length; pointIdx < len; pointIdx+=2) {
+							this.context.lineTo(place[0] += line[pointIdx], place[1] += line[pointIdx+1]);
 						}
 					}
+				},
+				updateGraphics: function() {
+					localContainer.contextTranslateRotate(this.context, this.pos, this.rotation);
+					this.drawShape();
+					this.context.globalAlpha = this.alpha;
 					this.context.lineJoin = this.style;
 					this.context.lineWidth = this.lineWidth;
 					this.context.strokeStyle = this.color;
 					this.context.stroke();
+					localContainer.contextReset(this.context);
 				}
 			},
 			config

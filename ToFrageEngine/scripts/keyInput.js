@@ -64,7 +64,7 @@ function Input(creation) {
 				inputList: [], // ["w", "s", "d"]
 				mouseData: {}, // mouseMove:[], wheel:[]
 				addInput: function(input, value) {
-					if (!this.inputList.includes(input)) this.inputList.push(input);
+					if (!this.inputList.includes(input)) this.inputList.push(input); 
 				},
 				removeInput: function(input) {
 					var index = this.inputList.indexOf(input);

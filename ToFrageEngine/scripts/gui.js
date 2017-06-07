@@ -164,10 +164,12 @@ function GUI(engine) {
 				update: function(newPos, newArea) {
 					// Prioritize area over pos
 					if (this.localAreaRatio) {
+						console.log(newArea);
 						this.area = [
 							newArea[0]*this.localArea[0],
 							newArea[1]*this.localArea[1]
 						].map(Math.abs);
+						console.log("Area: ", this.area);
 					} else {
 						var area = [
 							this.localArea[0] < 0 ? newArea[0] + this.localArea[0] : this.localArea[0],
@@ -183,6 +185,7 @@ function GUI(engine) {
 							newPos[0] + (newArea[0] - this.area[0])*this.localPos[0],
 							newPos[1] + (newArea[1] - this.area[1])*this.localPos[1]
 						];
+						console.log("POS: ", this.pos);
 					} else {
 						var posSpace = [
 							newArea[0] - this.area[0],
