@@ -13,6 +13,29 @@ function Creation() {
 		return localContainer.getType(one) === localContainer.getType(two);
 	};
 
+	localContainer.flattenList = function(list) {
+		return list.reduce(function(a, b) { return a.concat(b); }, []);
+	}
+
+	localContainer.groupList = function(list, groupSize) {
+		var i=0, len = list.length, result = [];
+		if (groupSize >= len) return [list];
+		if (groupSize <= 0) return undefined;
+		for (; i<len; i+=groupSize) {
+			result.push(list.slice(i, i+groupSize));
+		}
+		return result
+	}
+
+	localContainer.sizeOfShape = function(shape) {
+		var ratio = [0, 0], lst = this.flattenList(shape);
+		for (var i=0, len=lst.length; i<len; i+=2) {
+			ratio[0] += lst[i];
+			ratio[1] += lst[i+1];
+		}
+		return ratio;
+	}
+
 	localContainer.invert = function(object) {
 		var newObject = {};
 		for (var key in object) { newObject[object[key]] = key; }

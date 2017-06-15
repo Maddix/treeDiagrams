@@ -164,7 +164,6 @@ function Graphic(creation) {
 		return lc;
 	}
 
-
 	// The simplest drawable object.
 	localContainer.drawable = function(config) {
 		return creation.extend(
@@ -403,13 +402,13 @@ function Graphic(creation) {
 			{
 				updateGraphics: function() {
 					this.context.beginPath();
-					this.context.shadowBlur = 20;
-					this.context.shadowColor = "black";
+					// this.context.shadowBlur = 20;
+					// this.context.shadowColor = "black";
 					this.context.rect(this.pos[0], this.pos[1], this.area[0], this.area[1]);
 					this.context.globalAlpha = this.alpha;
 					this.context.fillStyle = this.color;
 					this.context.fill();
-					this.context.shadowBlur = 0;
+					// this.context.shadowBlur = 0;
 				}
 			},
 			config
@@ -476,7 +475,7 @@ function Graphic(creation) {
 				lineWidth: 1,
 				updateGraphics: function() {
 					this.context.globalAlpha = this.alpha;
-					localContainer.contextTranslateRotate(this.context, this.pos, this.rotation);
+					localContainer.contextTranslateRotate(this.context, [this.pos[0] += this.area[0], this.pos[1] += this.area[1]], this.rotation);
 					this.context.beginPath(); // Needed. Major lag if removed.
 					this.context.moveTo(this.pos[0], this.pos[1]);
 					this.context.lineTo(this.pos[0] + this.area[0], this.pos[1] + this.area[1]);

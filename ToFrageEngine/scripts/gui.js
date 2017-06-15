@@ -1,6 +1,64 @@
 function GUI(engine) {
 	var localContainer = {};
 
+	// PLEASE NOTE: This isn't a normal factory in that it doesn't return something runnable.
+	localContainer.absolutePositionPiece = function(config) {
+		return engine.Creation.compose(
+			{
+				// REQUIRES: area: [int, int]
+				// REQUIRES: pos: [int, int]
+				// REQUIRES: arrange: function() {}
+				localPos: [.5, .5],
+				localArea: [.5, .5],
+				localPosRatio: true,
+				localAreaRatio: true,
+				update: function(newPos, newArea) {
+					// Prioritize area over pos
+					if (this.localAreaRatio) {
+						this.area = [
+							newArea[0]*this.localArea[0],
+							newArea[1]*this.localArea[1]
+						].map(Math.abs);
+					} else {
+						var area = [
+							this.localArea[0] < 0 ? newArea[0] + this.localArea[0] : this.localArea[0],
+							this.localArea[1] < 0 ? newArea[1] + this.localArea[1] : this.localArea[1]
+						].map(Math.abs);
+						this.area = [
+							area[0] < newArea[0] ? area[0] : newArea[0],
+							area[1] < newArea[1] ? area[1] : newArea[1]
+						];
+					}
+					if (this.localPosRatio) {
+						this.pos = [
+							newPos[0] + (newArea[0] - this.area[0])*this.localPos[0],
+							newPos[1] + (newArea[1] - this.area[1])*this.localPos[1]
+						];
+					} else {
+						var posSpace = [
+							newArea[0] - this.area[0],
+							newArea[1] - this.area[1]
+						];
+						var negativePos = [
+							posSpace[0] + this.localPos[0],
+							posSpace[1] + this.localPos[1]
+						].map(function(x) { return x < 0 ? 0 : x; });
+						var pos = [
+							this.localPos[0] < 0 ? negativePos[0] : this.localPos[0],
+							this.localPos[1] < 0 ? negativePos[1] : this.localPos[1]
+						].map(Math.abs);
+						this.pos = [
+							newPos[0] + (pos[0] + this.area[0] <= newArea[0] ? pos[0] : posSpace[0]),
+							newPos[1] + (pos[1] + this.area[1] <= newArea[1] ? pos[1] : posSpace[1])
+						];
+					}
+					this.arrange();
+				}
+			},
+			config
+		);
+	}
+
 	localContainer.container = function(config) {
 		return engine.Creation.compose(
 			{
@@ -46,6 +104,14 @@ function GUI(engine) {
 					this.arrange();
 				}
 			},
+			config
+		);
+	}
+
+	localContainer.containerAbs = function(config) {
+		return engine.Creation.compose(
+			this.container(),
+			this.absolutePositionPiece(),
 			config
 		);
 	}
@@ -152,61 +218,12 @@ function GUI(engine) {
 	localContainer.widgetAbs = function(config) {
 		return engine.Creation.compose(
 			this.widget(),
+			this.absolutePositionPiece(),
 			{
-				localPos: [.5, .5],
-				localArea: [.5, .5],
-				localPosRatio: true,
-				localAreaRatio: true,
 				arrange: function() {
 					this.graphic.pos = this.pos;
 					this.graphic.area = this.area;
-				},
-				update: function(newPos, newArea) {
-					// Prioritize area over pos
-					if (this.localAreaRatio) {
-						console.log(newArea);
-						this.area = [
-							newArea[0]*this.localArea[0],
-							newArea[1]*this.localArea[1]
-						].map(Math.abs);
-						console.log("Area: ", this.area);
-					} else {
-						var area = [
-							this.localArea[0] < 0 ? newArea[0] + this.localArea[0] : this.localArea[0],
-							this.localArea[1] < 0 ? newArea[1] + this.localArea[1] : this.localArea[1]
-						].map(Math.abs);
-						this.area = [
-							area[0] < newArea[0] ? area[0] : newArea[0],
-							area[1] < newArea[1] ? area[1] : newArea[1]
-						];
-					}
-					if (this.localPosRatio) {
-						this.pos = [
-							newPos[0] + (newArea[0] - this.area[0])*this.localPos[0],
-							newPos[1] + (newArea[1] - this.area[1])*this.localPos[1]
-						];
-						console.log("POS: ", this.pos);
-					} else {
-						var posSpace = [
-							newArea[0] - this.area[0],
-							newArea[1] - this.area[1]
-						];
-						var negativePos = [
-							posSpace[0] + this.localPos[0],
-							posSpace[1] + this.localPos[1]
-						].map(function(x) { return x < 0 ? 0 : x; });
-						var pos = [
-							this.localPos[0] < 0 ? negativePos[0] : this.localPos[0],
-							this.localPos[1] < 0 ? negativePos[1] : this.localPos[1]
-						].map(Math.abs);
-						this.pos = [
-							newPos[0] + (pos[0] + this.area[0] <= newArea[0] ? pos[0] : posSpace[0]),
-							newPos[1] + (pos[1] + this.area[1] <= newArea[1] ? pos[1] : posSpace[1])
-						];
-					}
-					this.arrange();
 				}
-
 			},
 			config
 		);
