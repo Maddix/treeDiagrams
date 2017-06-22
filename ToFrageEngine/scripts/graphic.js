@@ -348,13 +348,13 @@ function Graphic(creation) {
 				updateGraphics: function() {
 
 					this.context.globalAlpha = this.alpha;
-					this.context.globalCompositeOperation = "source-atop";
+					//this.context.globalCompositeOperation = "source-atop";
 					this.context.fillStyle = this.color;
 					this.context.textAlign = this.align;
 					this.context.textBaseline = this.baseline;
 					this.setFont();
 					this.context.fillText(this.text, this.pos[0], this.pos[1]);
-					this.context.globalCompositeOperation = "source-over";
+					//this.context.globalCompositeOperation = "source-over";
 				}
 			},
 			config

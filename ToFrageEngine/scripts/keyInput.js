@@ -17,6 +17,16 @@ function Input(creation) {
 	var localContainer = {
 		version: "1.0",
 		requires: "Jquery 2.0.3+ and Jquery-mousewheel",
+		textKeyMap: {
+			65:"a", 66:"b", 67:"c", 68:"d", 69:"e", 70:"f", 71:"g",
+			72:"h", 73:"i", 74:"j", 75:"k", 76:"l", 77:"m", 78:"n",
+			79:"o", 80:"p", 81:"q", 82:"r", 83:"s", 84:"t", 85:"u",
+			86:"v", 87:"w", 88:"x", 89:"y", 90:"z", 9:"	",  32:" ",
+			48:"0", 49:"1", 50:"2", 51:"3", 52:"4",
+			53:"5", 54:"6", 55:"7", 56:"8", 57:"9",
+			188:",", 190:".", 191:"/", 219:"[", 220:"\\", 221:"]", 192:"`",
+			186:";", 222:"'", 189: "-", 187:"=",
+		},
 		defaultKeyMap: { // Keep in mind that the key-codes are from the Jquery event.which, need to add in special characters
 			65:"a", 66:"b", 67:"c", 68:"d", 69:"e", 70:"f", 71:"g",
 			72:"h", 73:"i", 74:"j", 75:"k", 76:"l", 77:"m", 78:"n",
@@ -64,14 +74,14 @@ function Input(creation) {
 				inputList: [], // ["w", "s", "d"]
 				mouseData: {}, // mouseMove:[], wheel:[]
 				addInput: function(input, value) {
-					if (!this.inputList.includes(input)) this.inputList.push(input); 
+					if (!this.inputList.includes(input)) this.inputList.push(input);
 				},
 				removeInput: function(input) {
 					var index = this.inputList.indexOf(input);
 					if (index != -1) this.inputList.splice(index, 1);
 				},
 				getInput: function() {
-					var data = creation.clone(this.inputList).concat(creation.clone(this.mouseData));
+					var data = creation.clone(this.inputList) //.concat(creation.clone(this.mouseData));
 					this.mouseData.wheel = "";
 					return data;
 				},
@@ -121,7 +131,7 @@ function Input(creation) {
 				mouseElement: "canvas",
 				getScrollData: true,
 				// Only used for keys
-				blacklist: [[17, 82], [17, 16, 67], [16, 17, 65]], //Ctrl-R, Ctrl-Shift-C
+				blacklist: [[17, 82], [17, 16, 67], [16, 17, 65], [222], [191]], //Ctrl-R, Ctrl-Shift-C
 				blackListed: function(blacklist, data) {
 					return blacklist.map(function(combo) {
 						return !combo.map(function(key) { return data.includes(key); }).includes(false);

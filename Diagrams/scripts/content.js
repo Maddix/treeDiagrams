@@ -5,6 +5,7 @@ function createContent(DATA) {
 	var drawLayer = DATA.layerContainer.get("draw");
 	var input = DATA.input;
 	var eventGroup = DATA.eventGroup;
+	var keyMap = engine.Input.textKeyMap;
 
 
 	var debugRect = engine.Graphic.rectangle({color:"grey"});
@@ -25,11 +26,29 @@ function createContent(DATA) {
 	});
 	// wrenchIcon.scale(.3);
 	// wrenchIcon.area = engine.Creation.sizeOfShape(wrenchIcon.shape);
+	var textRect = engine.Graphic.rectangle({color: "black"});
+	var text = engine.Graphic.text({color:"orange", text: "Text!"});
 
 	function addButtonEvents(widget, trigger, eat, pressed, released) {
 		widget.events
 		.add(engine.Event.event({trigger: trigger, eatOnSuccess: eat}).add(pressed.bind(widget)))
 		.add(engine.Event.lateEvent({trigger: trigger, eatOnSuccess: eat}).add(released.bind(widget)));
+		return widget;
+	}
+
+	function textInputEvents(widget) {
+		widget.events
+		.add(engine.Event.continuousEvent({trigger: 8, eatOnSuccess: true})
+			.add(function(data){
+				var text = this.graphic.text
+				this.graphic.text = text.substr(0, text.length-1);
+			}.bind(widget))
+		)
+		.add(engine.Event.continuousDiffEvent()
+			.add(function(data) {
+				this.graphic.text += data[1].map(function(num) { return keyMap[num]; }).join("");
+			}.bind(widget))
+		);
 		return widget;
 	}
 
@@ -41,7 +60,20 @@ function createContent(DATA) {
 	drawLayer
 	.add(debugRect)
 	.add(redButton)
-	.add(blueButton);
+	.add(blueButton)
+	.add(textRect)
+	.add(text);
+
+	var settingsWindow = engine.GUI.container({area: [300, 200]});
+
+	settingsWindow
+	.add(
+		engine.GUI.widgetAbs({
+			localPos: [.5, .5],
+			localArea: [.7, .3]
+		})
+	);
+
 
 	var mainContainer = engine.GUI.container({area: DATA.screenArea});
 	mainContainer
@@ -57,7 +89,7 @@ function createContent(DATA) {
 			.add(
 				addButtonEvents(
 					engine.GUI.widgetFit({ pad:[.9, .95], graphic: redButton }),
-					1,
+					1, // Changing this to something different from event groups first event trigger does odd stuff. :/
 					true,
 					function() {
 						this.graphic.color = "#990000";
@@ -86,6 +118,18 @@ function createContent(DATA) {
 			)
 		)
 	)
+	.add(
+		engine.GUI.containerAbs({
+			localPos: [.5, .5],
+			localArea: [.3, .3]
+		})
+		.add(engine.GUI.widgetFit({graphic: textRect}))
+		.add(
+			textInputEvents(
+				engine.GUI.widgetAbs({localPos:[.5, .5], localArea:[.9, .2], graphic:text})
+			)
+		)
+	)
 	.arrange();
 
 	eventGroup
@@ -95,6 +139,8 @@ function createContent(DATA) {
 			console.log("Clicked items: ", mainContainer.within(input.getMouse()));
 		})
 	)
-	.add(mainContainer.events);
-
+	.add(mainContainer.events)
+	//.add(engine.Event.continuousDiffEvent()
+	//	.add(function(data) { console.log(data[0], '\n', data[1]); })
+	//);
 }

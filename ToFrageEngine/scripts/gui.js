@@ -183,6 +183,7 @@ function GUI(engine) {
 		);
 	}
 
+	// Fit as in Fit the available space and pad the graphic.
 	localContainer.widgetFit = function(config) {
 		return engine.Creation.compose(
 			this.widget(),

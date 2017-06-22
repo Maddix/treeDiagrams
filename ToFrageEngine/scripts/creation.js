@@ -27,6 +27,7 @@ function Creation() {
 		return result
 	}
 
+	// This is wrong. We need to get the MAX ABS value for both X and Y.
 	localContainer.sizeOfShape = function(shape) {
 		var ratio = [0, 0], lst = this.flattenList(shape);
 		for (var i=0, len=lst.length; i<len; i+=2) {

@@ -1,13 +1,11 @@
 function Event(creation) {
 	var localContainer = {};
 
-	localContainer.lateEvent = function(config) {
+	// PLEASE NOTE: This is not a complete piece!
+	localContainer.notifyListPiece = function(config) {
 		return creation.compose(
 			{
-				tripped: false,
-				trigger: null, // The triggering data
 				notifyList: [],
-				reset: function() { this.tripped = false; },
 				add: function(item) {
 					var isFunc = typeof item == "function";
 					if (isFunc) this.notifyList.push(item);
@@ -25,6 +23,18 @@ function Event(creation) {
 				updateList: function(data) {
 					this.notifyList.forEach(function(item) { item(data); });
 				},
+			},
+			config
+		);
+	}
+
+	localContainer.lateEvent = function(config) {
+		return creation.compose(
+			this.notifyListPiece(),
+			{
+				tripped: false,
+				trigger: null, // The triggering data
+				reset: function() { this.tripped = false; },
 				findMatch: function(data) {
 					return data.includes(this.trigger);
 				},
@@ -83,6 +93,32 @@ function Event(creation) {
 			},
 			config
 		);
+	}
+
+	localContainer.continuousDiffEvent = function(config) {
+		return creation.compose(
+			this.notifyListPiece(),
+			{
+				lastData: [],
+				update: function(data) {
+					var lastData = this.lastData;
+					var diff = [
+						lastData.filter(function(item) {
+							return !data.includes(item);
+						}),
+						data.filter(function(item, currentIdx) {
+							var idx = lastData.indexOf(item);
+							if (idx == -1 || currentIdx > idx) return true;
+						})
+					];
+					this.updateList(diff);
+					this.lastData = data;
+					// Should we eat this data?
+					return data;
+				}
+			},
+			config
+		)
 	}
 
 	localContainer.complexEvent = function(config) {
