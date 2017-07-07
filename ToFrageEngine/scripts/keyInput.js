@@ -15,8 +15,7 @@ function alphabet(start, end) {
 
 function Input(creation) {
 	var localContainer = {
-		version: "1.0",
-		requires: "Jquery 2.0.3+ and Jquery-mousewheel",
+		//requires: "Jquery 2.0.3+ and Jquery-mousewheel",
 		textKeyMap: {
 			65:"a", 66:"b", 67:"c", 68:"d", 69:"e", 70:"f", 71:"g",
 			72:"h", 73:"i", 74:"j", 75:"k", 76:"l", 77:"m", 78:"n",
@@ -25,8 +24,9 @@ function Input(creation) {
 			48:"0", 49:"1", 50:"2", 51:"3", 52:"4",
 			53:"5", 54:"6", 55:"7", 56:"8", 57:"9",
 			188:",", 190:".", 191:"/", 219:"[", 220:"\\", 221:"]", 192:"`",
-			186:";", 222:"'", 189: "-", 187:"="
+			59:";", 222:"'", 173: "-", 61:"="
 		},
+		textKeyMapUpper: {},
 		defaultKeyMap: { // Keep in mind that the key-codes are from the Jquery event.which, need to add in special characters
 			65:"a", 66:"b", 67:"c", 68:"d", 69:"e", 70:"f", 71:"g",
 			72:"h", 73:"i", 74:"j", 75:"k", 76:"l", 77:"m", 78:"n",
@@ -45,8 +45,8 @@ function Input(creation) {
 		},
 		defaultShiftKeyMap: {
 			49: "!", 50:"@", 51:"#", 52:"$", 53:"%", 54:"^",
-			55:"&", 56:"*", 57:"(", 58:")", 189:"_", 187:"+",
-			219:"{", 221:"}", 220:"|", 186:":", 222:'"', 188:"<",
+			55:"&", 56:"*", 57:"(", 48:")", 173:"_", 61:"+",
+			219:"{", 221:"}", 220:"|", 59:":", 222:'"', 188:"<",
 			190:">", 191:"?", 192:"~"
 		},
 		reverseKeyMap: {},
@@ -54,6 +54,14 @@ function Input(creation) {
 	};
 	localContainer.reverseKeyMap = creation.invert(localContainer.defaultKeyMap);
 	localContainer.reverseShiftKeyMap = creation.invert(localContainer.defaultShiftKeyMap);
+	localContainer.textKeyMapUpper = function() {
+		var upper = {}
+		for (var item in localContainer.textKeyMap) {
+			var val = localContainer.textKeyMap[item];
+			upper[item] = String.toUpperCase(val);
+		}
+		return creation.compose(upper, localContainer.defaultShiftKeyMap);
+	}();
 
 	localContainer.getKey = function(keyNumber, shift) {
 		var isString = creation.isType(keyName, "");

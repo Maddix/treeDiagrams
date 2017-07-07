@@ -6,6 +6,7 @@ function createContent(DATA) {
 	var input = DATA.input;
 	var eventGroup = DATA.eventGroup;
 	var keyMap = engine.Input.textKeyMap;
+	var keyMapUpper = engine.Input.textKeyMapUpper;
 
 
 	var debugRect = engine.Graphic.rectangle({color:"grey"});
@@ -36,19 +37,57 @@ function createContent(DATA) {
 		return widget;
 	}
 
-	function textInputEvents(widget) {
-		widget.events
-		.add(engine.Event.continuousEvent({trigger: 8, eatOnSuccess: true})
-			.add(function(data){
-				var text = this.graphic.text
-				this.graphic.text = text.substr(0, text.length-1);
-			}.bind(widget))
+	// cursor
+
+	function properTextField(config) {
+		var object = engine.Creation.compose(
+			{
+				cursor:0,
+				text:"",
+				last:"",
+				shift:false,
+				events: engine.Event.eventGroup()
+			},
+			config
+		);
+
+		object.events
+		.add(engine.Event.event({trigger: 16, eatOnSuccess: true}) //Shift on
+			.add(function(data) { this.shift = true; }.bind(object))
+		)
+		.add(engine.Event.lateEvent({trigger: 16}) // Shift off
+			.add(function(data) { this.shift = false; }.bind(object))
 		)
 		.add(engine.Event.continuousDiffEvent()
 			.add(function(data) {
-				this.graphic.text += data[1].map(function(num) { return keyMap[num]; }).join("");
-			}.bind(widget))
+				var shift = this.shift;
+				this.text += data[1].map(function(num) { return shift ? keyMapUpper[num] : keyMap[num]; }).join("");
+				//this.last = this.text.slice(-1);
+				this.cursor += data[1].length;
+				console.log(this.text);
+			}.bind(object))
 		);
+
+		return object;
+	}
+
+	function textInputEvents(widget) {
+		// widget.events
+		// .add(engine.Event.continuousEvent({trigger: 8, eatOnSuccess: true})
+		// 	.add(function(data) {
+		// 		var text = this.graphic.text
+		// 		this.graphic.text = text.substr(0, text.length-1);
+		// 	}.bind(widget))
+		// )
+		// .add(engine.Event.continuousDiffEvent()
+		// 	.add(function(data) {
+		// 		this.graphic.text += data[1].map(function(num) { return keyMap[num]; }).join("");
+		// 	}.bind(widget))
+		// );
+		var field = properTextField();
+		widget.textField = field;
+		widget.events
+		.add(field.events);
 		return widget;
 	}
 

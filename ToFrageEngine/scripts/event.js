@@ -7,9 +7,8 @@ function Event(creation) {
 			{
 				notifyList: [],
 				add: function(item) {
-					var isFunc = typeof item == "function";
-					if (isFunc) this.notifyList.push(item);
-					return this; // Should I return true/false?
+					if (typeof item == "function") this.notifyList.push(item);
+					return this;
 				},
 				remove: function(item) {
 					if (this.notifyList.includes(item))
