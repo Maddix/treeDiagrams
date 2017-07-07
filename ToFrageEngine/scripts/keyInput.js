@@ -25,7 +25,7 @@ function Input(creation) {
 			48:"0", 49:"1", 50:"2", 51:"3", 52:"4",
 			53:"5", 54:"6", 55:"7", 56:"8", 57:"9",
 			188:",", 190:".", 191:"/", 219:"[", 220:"\\", 221:"]", 192:"`",
-			186:";", 222:"'", 189: "-", 187:"=",
+			186:";", 222:"'", 189: "-", 187:"="
 		},
 		defaultKeyMap: { // Keep in mind that the key-codes are from the Jquery event.which, need to add in special characters
 			65:"a", 66:"b", 67:"c", 68:"d", 69:"e", 70:"f", 71:"g",
