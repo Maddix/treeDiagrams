@@ -27,8 +27,8 @@ function createContent(DATA) {
 	});
 	// wrenchIcon.scale(.3);
 	// wrenchIcon.area = engine.Creation.sizeOfShape(wrenchIcon.shape);
-	var textRect = engine.Graphic.rectangle({color: "black"});
-	var text = engine.Graphic.text({color:"orange", text: "Text!"});
+	var textRect = engine.Graphic.rectangle({color: "gray", alpha:.6});
+	var text = engine.Graphic.text({color:"orange", text: "Text!", baseline:"hanging"});
 
 	function addButtonEvents(widget, trigger, eat, pressed, released) {
 		widget.events
@@ -37,13 +37,13 @@ function createContent(DATA) {
 		return widget;
 	}
 
-	// cursor
-
-	function properTextField(config) {
+	function textFieldEvents(config) {
 		var object = engine.Creation.compose(
 			{
 				cursor:0,
+				cursorKey:"|",
 				text:"",
+				renderText:"",
 				last:"",
 				shift:false,
 				events: engine.Event.eventGroup()
@@ -58,34 +58,55 @@ function createContent(DATA) {
 		.add(engine.Event.lateEvent({trigger: 16}) // Shift off
 			.add(function(data) { this.shift = false; }.bind(object))
 		)
+		.add(engine.Event.event({trigger:37, eatOnSuccess: true})
+			.add(function(data) { // Left arrow
+				if (this.cursor > 0) this.cursor--;
+			}.bind(object))
+		)
+		.add(engine.Event.event({trigger:39, eatOnSuccess: true})
+			.add(function(data) { // Right arrow
+				if (this.cursor < this.text.length) this.cursor++;
+			}.bind(object))
+		)
+		.add(engine.Event.event({trigger:8, eatOnSuccess: true})
+			.add(function(data) { // Backspace arrow
+				if (this.cursor > 0) {
+					this.text = this.text.splice(this.cursor-1, 1, "");
+					this.cursor--;
+				}
+
+			}.bind(object))
+		)
+		.add(engine.Event.event({trigger:46, eatOnSuccess: true})
+			.add(function(data) { // Delete arrow
+				if (this.cursor < this.text.length) this.text = this.text.splice(this.cursor, 1, "");
+			}.bind(object))
+		)
 		.add(engine.Event.continuousDiffEvent()
 			.add(function(data) {
-				var shift = this.shift;
-				this.text += data[1].map(function(num) { return shift ? keyMapUpper[num] : keyMap[num]; }).join("");
-				//this.last = this.text.slice(-1);
-				this.cursor += data[1].length;
-				console.log(this.text);
+				var shift = this.shift,
+					newString = data[1].map(function(num) {
+					return shift ? keyMapUpper[num] : keyMap[num];
+				}).join("");
+				this.text = this.text.splice(this.cursor, 0, newString);
+				this.cursor += newString.length;
+			}.bind(object))
+			.add(function() {
+				this.renderText = [
+					this.text.slice(0, this.cursor),
+					this.cursorKey,
+					this.text.slice(this.cursor, this.text.length)
+				].join("");
 			}.bind(object))
 		);
-
 		return object;
 	}
 
 	function textInputEvents(widget) {
-		// widget.events
-		// .add(engine.Event.continuousEvent({trigger: 8, eatOnSuccess: true})
-		// 	.add(function(data) {
-		// 		var text = this.graphic.text
-		// 		this.graphic.text = text.substr(0, text.length-1);
-		// 	}.bind(widget))
-		// )
-		// .add(engine.Event.continuousDiffEvent()
-		// 	.add(function(data) {
-		// 		this.graphic.text += data[1].map(function(num) { return keyMap[num]; }).join("");
-		// 	}.bind(widget))
-		// );
-		var field = properTextField();
+		var field = textFieldEvents();
 		widget.textField = field;
+		// Hack btw - renderText will update itself, Need a way to pull it.
+		field.events.events[6].add(function(data) { widget.graphic.text = field.renderText; });
 		widget.events
 		.add(field.events);
 		return widget;
@@ -118,10 +139,10 @@ function createContent(DATA) {
 	mainContainer
 	.add(
 		engine.GUI.containerAbs({
-			localPos: [-10, 10],
-			localArea: [200, 40],
 			localPosRatio: false,
-			localAreaRatio: false
+			localPos: [-10, 10],
+			localAreaRatio: false,
+			localArea: [200, 40]
 		})
 		.add(engine.GUI.widgetFit({pad:[1, 1], graphic: debugRect}))
 		.add(engine.GUI.containerRow()
@@ -160,14 +181,11 @@ function createContent(DATA) {
 	.add(
 		engine.GUI.containerAbs({
 			localPos: [.5, .5],
-			localArea: [.3, .3]
+			localAreaRatio: false,
+			localArea: [300, 20]
 		})
 		.add(engine.GUI.widgetFit({graphic: textRect}))
-		.add(
-			textInputEvents(
-				engine.GUI.widgetAbs({localPos:[.5, .5], localArea:[.9, .2], graphic:text})
-			)
-		)
+		.add(textInputEvents(engine.GUI.widgetFit({pad:[.9, .5], graphic:text})))
 	)
 	.arrange();
 

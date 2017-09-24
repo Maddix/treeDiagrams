@@ -24,7 +24,7 @@ function Input(creation) {
 			48:"0", 49:"1", 50:"2", 51:"3", 52:"4",
 			53:"5", 54:"6", 55:"7", 56:"8", 57:"9",
 			188:",", 190:".", 191:"/", 219:"[", 220:"\\", 221:"]", 192:"`",
-			59:";", 222:"'", 173: "-", 61:"="
+			186:";", 222:"'", 173: "-", 61:"="
 		},
 		textKeyMapUpper: {},
 		defaultKeyMap: { // Keep in mind that the key-codes are from the Jquery event.which, need to add in special characters
@@ -38,7 +38,7 @@ function Input(creation) {
 			48:"0", 49:"1", 50:"2", 51:"3", 52:"4",
 			53:"5", 54:"6", 55:"7", 56:"8", 57:"9",
 			188:",", 190:".", 191:"/", 219:"[", 220:"\\", 221:"]", 192:"`",
-			186:";", 222:"'", 189: "-", 187:"=",
+			222:"'", 189: "-", 187:"=",
 			112:"f1", 113:"f2", 114:"f3", 115:"f4", 116:"f5", 117:"f6",
 			118:"f7", 119:"f8", 120:"f9", 121:"f10", 122:"f11", 123:"f12",
 			1:"LMB", 2:"MMB", 3:"RMB" // Not sure if having these in caps will throw people off.
@@ -46,7 +46,7 @@ function Input(creation) {
 		defaultShiftKeyMap: {
 			49: "!", 50:"@", 51:"#", 52:"$", 53:"%", 54:"^",
 			55:"&", 56:"*", 57:"(", 48:")", 173:"_", 61:"+",
-			219:"{", 221:"}", 220:"|", 59:":", 222:'"', 188:"<",
+			219:"{", 221:"}", 220:"|", 222:'"', 188:"<", 186:":",
 			190:">", 191:"?", 192:"~"
 		},
 		reverseKeyMap: {},
@@ -58,7 +58,7 @@ function Input(creation) {
 		var upper = {}
 		for (var item in localContainer.textKeyMap) {
 			var val = localContainer.textKeyMap[item];
-			upper[item] = String.toUpperCase(val);
+			upper[item] = val.toUpperCase();
 		}
 		return creation.compose(upper, localContainer.defaultShiftKeyMap);
 	}();
